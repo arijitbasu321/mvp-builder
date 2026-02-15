@@ -214,9 +214,28 @@ This playbook combats context rot using a **fresh delegation model** inspired by
 **Rules for context management:**
 1. **PM never writes code directly.** It delegates to teammates who have fresh context for each task.
 2. **Each teammate receives only what it needs** — the task description, relevant source files, CLAUDE.md, and the relevant section of ARCHITECTURE.md. Not the entire project history.
-3. **Teammates report results back to PM** in a structured format: what was done, what files changed, what tests were added/modified, any concerns.
-4. **PM maintains a lightweight state file** (`.planning/STATE.md`) that tracks: current milestone, completed tasks, in-progress tasks, blocked tasks, and key decisions. This is the orchestrator's memory — it persists across sessions. **Structure rule**: STATE.md always starts with a "Current Status" section (≤20 lines): current milestone, current wave, blocked items, next action. Completed milestones move to an "Archive" section at the bottom. The PM reads this first every session — it must be scannable in seconds.
-5. **If the PM's context gets heavy** (above ~60%), it should start a new session, re-read CLAUDE.md, `.planning/STATE.md`, `.planning/DECISIONS.md`, and `.planning/LEARNINGS.md`, and continue. No work is lost because state is in files, not in context.
+3. **Teammates report results back to PM in a compressed format.** The PM's context is precious — verbose reports waste it. Every teammate report must follow this template:
+
+```
+DONE: <1-line summary of what was accomplished>
+FILES: <comma-separated list of created/modified files>
+TESTS: <# added, # modified, # passing> or "N/A"
+BLOCKERS: <none, or 1-line description>
+CONCERN: <none, or 1-line flag for PM awareness>
+```
+
+Example:
+```
+DONE: Built POST /api/auth/register with email/password validation
+FILES: src/api/auth/register.ts, src/api/auth/register.test.ts, src/lib/validators.ts
+TESTS: 6 added, 0 modified, 6 passing
+BLOCKERS: none
+CONCERN: bcrypt rounds set to 10 — may need tuning for production
+```
+
+The PM should reject verbose reports and ask the teammate to reformat. No code snippets, no explanations of approach, no stack traces in report-backs. If the PM needs details, it asks a targeted follow-up or delegates a review.
+4. **PM maintains a lightweight state file** (`.planning/STATE.md`) that tracks: current milestone, completed tasks, in-progress tasks, blocked tasks, and key decisions. This is the orchestrator's memory — it persists across sessions. **Structure rule**: STATE.md always starts with a "Current Status" section (≤20 lines): current milestone, current wave, blocked items, next action. Completed milestones move to an "Archive" section at the bottom. The PM reads this first every session — it must be scannable in seconds. **Per-wave updates**: After each wave completes (not just each milestone), the PM updates STATE.md with a brief wave summary: which tasks completed, which files were touched, and whether the wave's acceptance criteria passed. This ensures STATE.md reflects progress at wave granularity, so a mid-milestone reset loses nothing.
+5. **If the PM's context gets heavy** (above ~60%), it should start a new session, re-read CLAUDE.md, `.planning/STATE.md`, `.planning/DECISIONS.md`, and `.planning/LEARNINGS.md`, and continue. No work is lost because state is in files, not in context. **Natural reset points** (prefer resetting at these boundaries rather than mid-wave): (a) wave boundaries — after all teammates in a wave have reported back and STATE.md is updated; (b) between milestones — after verification passes and before planning the next milestone; (c) before verification waves — the verification wave benefits most from a fresh PM context, since it requires clear-headed assessment of truth conditions. Resetting mid-wave is safe but suboptimal: the PM must re-read STATE.md to reconstruct which teammates have reported back and which are still outstanding.
 6. **Agents maintain a shared learnings file** (`.planning/LEARNINGS.md`). After each task, the executing agent appends any useful discoveries: patterns found in the codebase, gotchas encountered, conventions established, or workarounds applied. This file is included in every teammate's context, so the team gets smarter over time — future iterations benefit from past mistakes without needing to rediscover them.
 
 ```markdown
@@ -254,6 +273,14 @@ This playbook combats context rot using a **fresh delegation model** inspired by
 ```
 
 > **Rule**: Before raising a question with the human, check DECISIONS.md. If it's already been decided, execute the decision. If circumstances have changed and the decision should be revisited, reference the original entry when escalating.
+
+8. **No code in PM context.** The PM never reads full source files, full test output, or code blocks. When a review is needed, delegate to a reviewer teammate. When messaging teammates, reference file paths, not code snippets. The PM's context should contain task descriptions, file lists, pass/fail verdicts, and orchestration state — never implementation details. If a teammate includes code in a report-back, the PM extracts the relevant fact (e.g., "validation added in `src/lib/validators.ts`") and discards the code from its working memory. The PM is a project manager, not a code reviewer.
+
+9. **Write-then-forget at wave boundaries.** After processing a wave's reports: (a) update STATE.md with per-wave results (tasks completed, files changed, any blockers), (b) update LEARNINGS.md with new entries from teammate reports, (c) update DECISIONS.md if any questions were settled during the wave. Once these files are written, the PM can rely on them for anything from previous waves. The context still holds the conversation text, but the PM's mental model should reference files, not conversation history. Think of it as: "I wrote it down, so I don't need to remember it."
+
+10. **Context budget estimation.** Before starting a milestone, estimate: N waves × M teammates per wave = ~K report-backs. Each report-back adds ~500-1000 tokens to PM context. If the milestone will generate >12 report-backs, plan a mid-milestone reset point (ideally before the verification wave). A typical PM session handles 2-3 milestones of 3-4 waves each before needing a reset. Example: a milestone with 4 waves averaging 3 teammates each = 12 report-backs ≈ 6,000-12,000 tokens of report context. That's manageable. A milestone with 6 waves averaging 4 teammates each = 24 report-backs — plan a reset after wave 3 or 4.
+
+11. **Self-assessment at wave boundaries.** After completing each wave, the PM asks itself: "Can I accurately recall this milestone's truth conditions? The remaining wave plan? The architectural constraints relevant to the next wave?" If the answer to any is uncertain, reset before continuing. The cost of an unnecessary reset (2 minutes re-reading state files) is far less than the cost of context-degraded orchestration (wrong decisions, missed requirements, contradictory instructions to teammates). A degraded PM is worse than a slow PM.
 
 ### Execution Model: Waves & Parallelism
 

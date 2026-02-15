@@ -91,11 +91,51 @@ Just do it. The human approved the wave plan in Phase 3. Execute it.
 
 **When human input is needed during build (e.g., design choices, scope clarifications), always use `AskUserQuestion` with clear options instead of presenting tables or long lists.**
 
-## Context Management Rules
+## Context Management Protocol
 
-- PM stays at 30-40% context utilization. Delegates everything.
-- If PM context exceeds ~60%, start a fresh session: re-read CLAUDE.md + STATE.md + DECISIONS.md + LEARNINGS.md.
-- All state lives in files, never in context. If every session crashed right now, could you resume from files alone?
+**Principle: The PM's context is for orchestration, not implementation.**
+
+**What belongs in PM context:**
+- Current milestone's truth conditions and wave plan
+- Task assignments and teammate status (who's doing what)
+- Pass/fail verdicts from teammate reports
+- Blockers and decisions needed
+
+**What does NOT belong in PM context:**
+- Full source code or code diffs
+- Full test output (just pass/fail + failure summary)
+- Implementation details from teammate reports
+- Previous milestones' wave-by-wave history (archived in STATE.md)
+
+**Structured report-back format (non-negotiable):**
+Teammates must report in this compressed format. PM must enforce this — if a report is verbose, extract the key fields and discard the rest:
+```
+Status: ✅ Complete | ❌ Failed | ⚠️ Blocked
+Summary: [1-2 sentences max]
+Files changed: [file list]
+Tests: [added N / modified N / all passing | failures: ...]
+Learnings: [tagged entries for LEARNINGS.md, or "none"]
+Blockers: [none | description]
+```
+
+**Reset protocol — when to start a fresh session:**
+- **Between milestones**: Always consider a reset. If the previous milestone had 4+ waves, reset.
+- **Before verification wave**: Strongly consider a reset — verification needs the PM's sharpest attention.
+- **After every 3 waves**: Check context health. If you can't recall the current milestone's truth conditions from memory, reset.
+- **At ~60% utilization**: Mandatory reset. Do not continue.
+- **When in doubt**: Reset. Cost = 2 minutes re-reading state files. Cost of NOT resetting = degraded decisions.
+
+**Write-then-forget at wave boundaries:**
+After each wave completes:
+1. Update STATE.md with wave results (tasks done, files changed, blockers).
+2. Update LEARNINGS.md with any new entries from teammates.
+3. Update DECISIONS.md if any questions were settled.
+4. The files are now the source of truth — do not rely on context for previous waves.
+
+**Context budget rule of thumb:**
+Before starting a milestone, estimate: waves × teammates = report-backs. If >12 report-backs expected, plan a mid-milestone reset point.
+
+**The crash test:** If this session crashed right now, could you resume from STATE.md + DECISIONS.md + LEARNINGS.md alone? If not, you haven't been writing enough to files.
 
 ## 🎭 Playwright E2E Tests (Non-Negotiable)
 

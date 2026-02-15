@@ -150,11 +150,28 @@ If each worker has a fresh context, how does the team maintain continuity? The a
 
 These four files form the team's **institutional memory**. They replace the context window as the source of truth and enable the team to operate across arbitrarily many sessions without degradation. This persistence layer is especially critical under Agent Teams, where `/resume` and `/rewind` do not restore teammates — the files are the only continuity mechanism. Because Agent Teams teammates load CLAUDE.md automatically, the instruction file becomes the primary channel for transmitting project invariants to every teammate without explicit PM delegation. The other three files (STATE.md, LEARNINGS.md, DECISIONS.md) must be passed explicitly by the PM when spawning teammates, which reinforces the discipline of maintaining them accurately.
 
-### 3.4 The 60% Rule
+### 3.4 The PM Context Budget
 
-The framework specifies that if the PM's context utilization exceeds approximately 60%, it should start a new session. The PM reads CLAUDE.md, STATE.md, LEARNINGS.md, and DECISIONS.md, and continues orchestrating from where it left off. This is a proactive measure — it prevents degradation rather than recovering from it.
+The framework specifies that if the PM's context utilization exceeds approximately 60%, it should start a new session. The PM reads CLAUDE.md, STATE.md, LEARNINGS.md, and DECISIONS.md, and continues orchestrating from where it left off. This is a proactive measure — it prevents degradation rather than recovering from it. But the 60% threshold is the emergency backstop, not the primary strategy. The primary strategy is proactive context management through structured inputs, natural reset points, and externalized memory.
 
-In practice, this means the PM might start 3-5 sessions over the course of building a full application, while spawning dozens of teammates (or sub-agents, if using the fallback model). The sessions are cheap (a few minutes of re-reading state); the alternative (degraded orchestration quality) is expensive.
+**Structured report-backs as input control.** The largest source of PM context bloat is verbose teammate reports. A developer teammate reporting back might include full code diffs, test output, implementation rationale, and debugging history — none of which the PM needs for orchestration. The framework mandates a compressed report format: status (pass/fail/blocked), a one-to-two sentence summary, list of files changed, test results (counts, not output), tagged learnings for the shared file, and blockers. This controls the single largest variable in PM context growth. The PM processes the structured report, updates state files, and moves to the next task. Implementation details stay in the teammate's context (which is discarded) and in the git history (which is permanent).
+
+**Natural reset points over arbitrary thresholds.** Rather than relying solely on a utilization percentage (which is difficult to estimate precisely), the framework identifies natural points where a session reset is low-cost and high-value:
+
+- Between milestones (always consider)
+- Before verification waves (fresh attention for quality gates)
+- After approximately three waves of multi-teammate execution
+- When the PM cannot accurately recall the current milestone's truth conditions from context alone
+
+These natural boundaries mean the PM resets proactively at points where the cost is minimal (wave boundary = no in-flight work) rather than reactively when degradation has already begun.
+
+**The write-then-forget pattern.** After each wave, the PM writes results to STATE.md, learnings to LEARNINGS.md, and decisions to DECISIONS.md. The PM then treats the files — not its context — as the source of truth for previous waves. This is a form of externalized memory: the context window holds recent orchestration state, while the files hold the complete project history. The PM's context budget is spent on the current wave and the next wave, not on the entire project.
+
+**Context budget estimation.** Before starting a milestone, the PM can estimate its context cost: number of waves multiplied by average teammates per wave gives the expected number of report-backs. Each structured report adds roughly 500-1000 tokens. A milestone with five waves averaging three teammates each generates approximately 15 report-backs — enough to warrant a mid-milestone reset. This estimation is approximate but useful for planning: it transforms context management from a reactive "am I at 60%?" check into a proactive "where should I plan my resets?" decision.
+
+**The no-code rule.** The PM's context should contain task descriptions, file path references, pass/fail verdicts, and orchestration decisions — never source code, test output, or implementation details. When the PM needs to understand code (for review decisions, conflict resolution, or architecture verification), it delegates to a reviewer teammate who reports back with a verdict and summary. This is perhaps the most counterintuitive rule: the PM orchestrates the building of software it never reads directly. But the PM's value is in coordination, sequencing, and decision-making, not in code comprehension — and protecting the PM's context for those high-value activities is worth the delegation overhead.
+
+In practice, these strategies mean the PM operates in a steady state of 30-40% context utilization, with resets at natural boundaries keeping it there. The 60% threshold becomes a safety net that rarely triggers rather than the primary management mechanism.
 
 ---
 
