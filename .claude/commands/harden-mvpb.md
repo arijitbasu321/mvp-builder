@@ -80,7 +80,7 @@ Present findings and resolution to the human:
 - [ ] Full test suite still passes after fixes.
 - [ ] Human has reviewed the remaining backlog and is comfortable with what's deferred.
 
-Once approved, update STATE.md and DECISIONS.md. Log: **"Approved — moving to Deployment & Launch Prep."**
+Once approved, update STATE.md and DECISIONS.md. Log: **"Approved — moving to Final Code Sweep."**
 
 ## ➡️ Auto-Chain
 

@@ -41,14 +41,16 @@ Collect the following inputs interactively. The human may have already provided 
 - "GitHub repository?" (header: "Repo") — Options: "Create new repo", "Use existing repo"
 - "Where will the app be deployed?" (header: "Hosting") — Options: "Vercel", "Railway", "AWS", "Fly.io"
 
-**Round 3 — Users & AI (Production):**
+**Round 3 — Users & AI Provider:**
 - "Who are the target users?" (header: "Users") — Options: suggest 2-3 personas based on the project idea
 - "Which AI provider for production?" (header: "AI Provider") — Options: "OpenAI", "Anthropic", "xAI", "Google Gemini"
-- "Which model for production?" (header: "AI Model") — Based on the selected provider, suggest 2-3 current models. E.g., OpenAI: "gpt-4o", "gpt-4o-mini"; Anthropic: "claude-sonnet-4-5-20250929", "claude-haiku-4-5-20251001"; xAI: "grok-3", "grok-3-mini"; Gemini: "gemini-2.0-flash", "gemini-2.5-pro". Stored in `.env` as `AI_MODEL`.
 
-**Round 3b — AI for Local Development:**
+**Round 3b — Production AI Model** (asked after Round 3, because model options depend on the provider chosen):
+- "Which model for production?" (header: "AI Model") — Based on the selected provider, suggest 2-3 current models. E.g., OpenAI: "gpt-4o", "gpt-4o-mini"; Anthropic: "claude-sonnet-4-5-20250929", "claude-haiku-4-5-20251001"; xAI: "grok-3", "grok-3-mini"; Gemini: "gemini-2.0-flash", "gemini-2.5-pro". Stored in `.env` as `AI_MODEL`.
 - "Which AI provider for local development/testing?" (header: "Dev Provider") — Options: "Same as production (Recommended)", "OpenAI", "Anthropic", "xAI", "Google Gemini". A cheaper/faster model is typical for dev to save costs.
-- "Which model for local development?" (header: "Dev Model") — If same provider as production, suggest a lighter model (e.g., gpt-4o-mini, claude-haiku-4-5-20251001, grok-3-mini, gemini-2.0-flash). Stored in `.env` as `AI_MODEL_DEV`. Skip this question if the user chose "Same as production" — in that case, `AI_MODEL_DEV` defaults to the production model.
+
+**Round 3c — Dev AI Model** (asked after Round 3b, skip entirely if user chose "Same as production" for dev provider — default `AI_MODEL_DEV` to the production model):
+- "Which model for local development?" (header: "Dev Model") — Based on the selected dev provider, suggest lighter/cheaper models (e.g., gpt-4o-mini, claude-haiku-4-5-20251001, grok-3-mini, gemini-2.0-flash). Stored in `.env` as `AI_MODEL_DEV`.
 
 **Round 4 — Deployment details (only if hosting is a VPS or self-managed server — skip for Vercel/Railway/Netlify):**
 - "How will the app run in production?" (header: "Runtime") — Options: "Docker Compose (Recommended)", "Plain Node.js + systemd", "Kubernetes"
@@ -56,7 +58,15 @@ Collect the following inputs interactively. The human may have already provided 
 - "SSL strategy?" (header: "SSL") — Options: "Let's Encrypt via certbot (Recommended)", "Cloudflare managed SSL", "Platform-managed"
 - "DNS provider?" (header: "DNS") — Options: "Cloudflare", "Route53", "Namecheap/registrar default"
 
-After collecting all inputs, confirm the AI API key is available (ask the human to provide it if not already set as an env var).
+After collecting all inputs, confirm the AI API key is available (ask the human to provide it if not already set as an env var). Seed `.env.example` with the collected AI vars:
+
+```
+# AI Configuration
+AI_PROVIDER=         # e.g., openai, anthropic, xai, google
+AI_MODEL=            # Production model (e.g., gpt-4o, claude-sonnet-4-5-20250929)
+AI_MODEL_DEV=        # Dev/testing model (e.g., gpt-4o-mini, claude-haiku-4-5-20251001)
+AI_API_KEY=          # API key for the AI provider
+```
 
 ## Actions After Inputs Are Collected
 
@@ -99,7 +109,6 @@ Next action: Collect remaining inputs, scaffold repo
 - Project Idea: [fill]
 - Repo: [fill]
 - Target Users: [fill]
-- Domain: [fill]
 - AI Provider (Production): [fill]
 - AI Model (Production): [fill] (stored in .env as AI_MODEL)
 - AI Provider (Dev): [fill]

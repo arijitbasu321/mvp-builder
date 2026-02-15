@@ -9,7 +9,7 @@ $ARGUMENTS
 ## Actions
 
 1. **Retrospective** — Review what went well, what was painful, what to do differently. Log key takeaways in LEARNINGS.md.
-2. **Backlog Review** — Review remaining issues from Phase 5 brainstorming + any new feature requests.
+2. **Backlog Review** — Review remaining issues from Phase 5 (brainstorming + security audit) and Phase 6 (code sweep) + any new feature requests.
 3. **Prioritize** — Rank the backlog for the next development cycle.
 
 ## Routing New Features

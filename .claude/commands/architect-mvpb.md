@@ -21,7 +21,7 @@ $ARGUMENTS
 - "Authentication?" (header: "Auth") — Options: "NextAuth.js (Recommended)", "Lucia Auth", "Custom JWT", "Clerk"
 
 **Round 3 — AI & infra:**
-- "AI provider & model?" (header: "AI Model") — The human chose a provider in Phase 0. Confirm the model choice and ask if they want a different (lighter/cheaper) model for Tier 2/3 features. Options: "[Provider from Phase 0] (as chosen)", "Different model for Tier 2/3 (specify)", "Multi-provider setup"
+- "AI model per tier?" (header: "AI Tiers") — The human chose a production provider/model and a dev provider/model in Phase 0. Confirm those choices, then ask: "Should Tier 2/3 features (suggestions, chatbot) use a lighter/cheaper model than Tier 1 (core business logic)?" Options: "Same model for all tiers (Recommended for MVP)", "Lighter model for Tier 2/3 (specify)". If they choose a different model for Tier 2/3, collect the model name. Document the per-tier model selection in ARCHITECTURE.md's AI Architecture section. Ensure `AI_MODEL` (production), `AI_MODEL_DEV` (dev), and optionally `AI_MODEL_TIER2` are in `.env.example`.
 - "Hosting platform?" (header: "Hosting") — Options: "Vercel (Recommended)", "Railway", "AWS", "Fly.io"
 
 **Round 4 — Services (only ask if relevant to the product):**
