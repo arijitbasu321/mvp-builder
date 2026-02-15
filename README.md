@@ -7,7 +7,7 @@ A structured playbook for building production-ready, AI-powered applications usi
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
 - GitHub repo and project board created
 - Your project idea, target users, and production domain
-- AI API key (OpenAI or equivalent)
+- AI API key (OpenAI, Anthropic, xAI, Google, or other provider)
 
 ## Setup
 

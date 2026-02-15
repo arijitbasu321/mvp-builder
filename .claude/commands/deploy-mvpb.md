@@ -59,7 +59,7 @@ Verify each item:
 - [ ] SSL certificate is valid and auto-renewing.
 - [ ] `scripts/deploy.sh` executes successfully end-to-end.
 - [ ] `scripts/deploy-rollback.sh` has been tested.
-- [ ] Production env vars configured (including `OPENAI_API_KEY`).
+- [ ] Production env vars configured (including AI provider API key).
 - [ ] Database migrated and seeded.
 - [ ] Health check responds at `https://[domain]/api/health`.
 - [ ] Error tracking receiving test events.

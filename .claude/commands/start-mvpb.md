@@ -43,7 +43,7 @@ Collect the following inputs interactively. The human may have already provided 
 
 **Round 3 — Users & AI:**
 - "Who are the target users?" (header: "Users") — Options: suggest 2-3 personas based on the project idea
-- "Which AI provider?" (header: "AI Provider") — Options: "OpenAI", "Anthropic", "Both"
+- "Which AI provider and model?" (header: "AI Provider") — Options: "OpenAI GPT-4o", "Anthropic Claude Sonnet", "xAI Grok", "Google Gemini". If the user selects one or types a custom response, follow up: "What specific model name? (e.g., gpt-4o, claude-sonnet-4-5-20250929, grok-3)" (header: "Model")
 
 **Round 4 — Deployment details (only if hosting is a VPS or self-managed server — skip for Vercel/Railway/Netlify):**
 - "How will the app run in production?" (header: "Runtime") — Options: "Docker Compose (Recommended)", "Plain Node.js + systemd", "Kubernetes"
@@ -95,6 +95,8 @@ Next action: Collect remaining inputs, scaffold repo
 - Repo: [fill]
 - Target Users: [fill]
 - Domain: [fill]
+- AI Provider: [fill]
+- AI Model: [fill]
 - AI API Key: [provided/pending]
 - Runtime: [Docker Compose / Node.js / etc.]
 - Reverse Proxy: [Nginx / Caddy / etc.]

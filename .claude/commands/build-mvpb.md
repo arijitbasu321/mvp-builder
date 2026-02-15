@@ -75,6 +75,7 @@ Just do it. The human approved the wave plan in Phase 3. Execute it.
 4. Runs ALL tests (not just new ones)
 5. If tests fail → fixes before proceeding
 6. Updates documentation if behavior changed
+6b. If the task modified AI prompts: runs prompt eval against golden dataset, verifies no regression
 7. Commits with conventional commit message
 
 **Worker reports back:**
@@ -186,6 +187,7 @@ If ANY step fails, fix and re-validate. Do not proceed to verification wave with
 6. **Prune LEARNINGS.md**: Archive entries from milestones older than the previous one into `.planning/LEARNINGS_ARCHIVE.md`. Keep only current + previous milestone entries active. Promote frequently-referenced entries to a "Pinned" section at the top.
 7. **Present to human for sign-off** — each milestone requires human approval. Once approved, immediately begin the next milestone's first wave (do not wait for another command).
 8. **Tooling reassessment (mandatory):** If the next milestone introduces new technology or workflows (e.g., chatbot, admin panel, deployment, monitoring), search the skills source registry for matching skills before starting the next wave. For every new external service, check if an MCP server would help. Apply the same security vetting protocol from Phase 2. Propose new tools to the human if found.
+9. **Prompt eval check (if milestone touched AI prompts):** Run all modified prompts against their golden datasets. Verify no regressions below baseline scores. If a prompt was added without eval coverage, create the golden dataset before the milestone passes.
 
 ## Integration Gate (after ALL milestones)
 

@@ -21,7 +21,7 @@ $ARGUMENTS
 - "Authentication?" (header: "Auth") — Options: "NextAuth.js (Recommended)", "Lucia Auth", "Custom JWT", "Clerk"
 
 **Round 3 — AI & infra:**
-- "AI provider & model?" (header: "AI Model") — Options: "OpenAI GPT-4o (Recommended)", "Anthropic Claude", "Both (multi-provider)"
+- "AI provider & model?" (header: "AI Model") — The human chose a provider in Phase 0. Confirm the model choice and ask if they want a different (lighter/cheaper) model for Tier 2/3 features. Options: "[Provider from Phase 0] (as chosen)", "Different model for Tier 2/3 (specify)", "Multi-provider setup"
 - "Hosting platform?" (header: "Hosting") — Options: "Vercel (Recommended)", "Railway", "AWS", "Fly.io"
 
 **Round 4 — Services (only ask if relevant to the product):**

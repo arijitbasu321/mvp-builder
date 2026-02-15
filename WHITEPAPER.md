@@ -331,7 +331,7 @@ All AI API calls must go through a centralized service layer — never directly 
 - **Single point of control** for model selection, prompt management, and fallback logic.
 - **Centralized logging** of every API call: user, model, tokens consumed, latency, cost.
 - **Cost controls** — rate limiting, budget caps, and usage alerts.
-- **Swappable providers** — if the team needs to switch from OpenAI to another provider, only the service layer changes.
+- **Swappable providers** — the human chooses their AI provider and model during project initialization (OpenAI, Anthropic, xAI, Google, or others). The service layer abstracts the provider, so switching models or providers requires changes in one place.
 - **Testability** — the service layer can be mocked in tests, so the test suite doesn't depend on a live AI API.
 
 ### 7.4 AI-Specific Security Concerns
@@ -351,6 +351,22 @@ The framework requires the Security role to audit all AI integration points for 
 For Tier 1 features where the AI's output feeds into application logic (not just displayed to the user), the framework requires structured output handling: JSON mode or function calling to guarantee parseable responses, schema validation on every AI response before it enters the application, and typed interfaces that the rest of the codebase can rely on.
 
 AI response caching is an architectural concern, not an optimization afterthought. The Architect identifies cacheable queries during Phase 2 (queries where the same input reliably produces an acceptable output), implements caching at the service layer, and defines TTL per use case. A recommendation engine might cache for hours; a real-time analysis endpoint might not cache at all. Cost estimation — approximate calls per user per day, cost per call, projected monthly spend — is part of the architecture review.
+
+### 7.6 Prompt Evaluation as a Quality Gate
+
+For AI-powered products, prompts are often the most important code in the codebase. A meal planning app's value is not its React frontend or its database schema — it is the prompt that turns dietary preferences into a useful weekly plan. Yet in most AI development workflows, prompts receive less testing rigor than a simple API endpoint.
+
+The framework addresses this asymmetry with a prompt evaluation framework that treats prompt quality as a first-class engineering concern:
+
+**Golden datasets.** For each Tier 1 prompt (core business logic), the team builds a set of 20-30 input/expected-output pairs that define what "good" looks like. These are curated during development — starting with 5 during initial implementation and expanding as the team learns what edge cases matter. The golden dataset is the prompt's test suite. It lives alongside the prompt files, is version-controlled, and is run automatically.
+
+**Regression gates.** Before any prompt change merges, the modified prompt runs against its golden dataset. If the eval score drops below the established baseline, the change does not merge without explicit justification logged in the decision file. This is the prompt equivalent of "all tests must pass before merge." A prompt that returns valid JSON but produces worse recommendations is a regression — the structured output validation catches format issues, but only the eval catches quality degradation.
+
+**Tiered coverage.** Not all prompts need the same rigor. Tier 1 (core business logic) requires full eval coverage with golden datasets. Tier 2 (smart suggestions) requires at least 10 eval cases. Tier 3 (chatbot) requires guardrail boundary tests — does it stay on topic, does it refuse off-topic requests, can it be manipulated into revealing system prompts — but not output quality scoring, because conversational quality is inherently subjective and variable.
+
+**Prompt versioning.** Prompts are stored as versioned files. The AI service layer references the active version. Rolling back a prompt means pointing to the previous version file — no code change required beyond updating the version reference. This makes prompt rollback as fast as a config change, not a code deployment.
+
+The key insight is that prompts are probabilistic — the same input can produce different outputs across runs. Traditional pass/fail testing does not apply directly. The eval framework uses scoring (does the output contain expected elements, match expected structure, fall within expected length bounds) rather than exact matching. The scores establish a baseline, and regressions against that baseline are the signal, not individual test failures.
 
 ---
 
@@ -580,7 +596,7 @@ If the product includes AI features, define:
 - Fallback strategy for every AI feature.
 - Cost estimation (approximate calls per user per day, cost per call, projected monthly spend).
 - AI response caching strategy (cacheable queries, TTL per use case).
-- Prompt evaluation baseline (at least 5 test cases per Tier 1 prompt during development, expanded post-MVP).
+- Prompt evaluation framework: golden datasets per Tier 1 prompt (20-30 cases), automated regression scoring before any prompt change merges, versioned prompt files with rollback capability.
 - AI-specific security audit checklist (prompt injection defenses, system prompt exposure, data leakage, cost abuse, PII handling).
 
 ### 12.8 Add Protocols for External Dependencies
