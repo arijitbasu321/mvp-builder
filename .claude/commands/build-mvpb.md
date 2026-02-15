@@ -189,6 +189,7 @@ If ANY step fails, fix and re-validate. Do not proceed to verification wave with
 7. **Present to human for sign-off** — each milestone requires human approval. Once approved, immediately begin the next milestone's first wave (do not wait for another command).
 8. **Tooling reassessment (mandatory):** If the next milestone introduces new technology or workflows (e.g., chatbot, admin panel, deployment, monitoring), search the skills source registry for matching skills before starting the next wave. For every new external service, check if an MCP server would help. Apply the same security vetting protocol from Phase 2. Propose new tools to the human if found.
 9. **Prompt eval check (if milestone touched AI prompts):** Run all modified prompts against their golden datasets. Verify no regressions below baseline scores. If a prompt was added without eval coverage, create the golden dataset before the milestone passes.
+10. **AI accuracy check (if milestone includes AI features):** For each AI feature in the milestone, verify it meets its per-tier accuracy target from ARCHITECTURE.md. Tier 1 below 95%: blocks — escalate to human for override decision. Tier 2 below 80%: log the gap, enable manual override fallback. Tier 3 below 70%: disable the feature. If the human overrides a below-target Tier 1 feature, log the decision and accepted accuracy in DECISIONS.md.
 
 ## Integration Gate (after ALL milestones)
 

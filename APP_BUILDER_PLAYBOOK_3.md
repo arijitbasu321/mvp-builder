@@ -326,6 +326,7 @@ The difference is critical. Completing tasks doesn't guarantee the product works
 - [ ] The AI service layer logs the API call with token count and latency.
 - [ ] An unauthorized user cannot access the AI endpoint (returns 401).
 - [ ] Tier 1 AI prompts have ≥5 eval test cases that pass (expected input → expected output schema).
+- [ ] Tier 1 AI features meet ≥95% accuracy target (or human has overridden with accepted level logged in DECISIONS.md).
 - [ ] All truth conditions can be verified by running `npm test` and the Playwright E2E suite.
 ```
 
@@ -659,6 +660,11 @@ Create `docs/ARCHITECTURE.md` with:
       - **Regression gate**: A prompt change that reduces the eval score below the established baseline must not merge without explicit justification logged in DECISIONS.md. This is the prompt equivalent of "all tests must pass before merge."
       - **Prompt versioning**: Store prompts as versioned files (e.g., `prompts/meal-plan-v1.md`, `prompts/meal-plan-v2.md`). The service layer references the active version. Rollback means pointing to the previous version file.
       - **Tier coverage**: Tier 1 (core business logic) requires full eval coverage. Tier 2 (suggestions) requires at least 10 eval cases. Tier 3 (chatbot) requires guardrail boundary tests (does it stay on-topic? does it refuse off-topic requests?) but not output quality scoring.
+    - **AI Failure Budget**: AI features are probabilistic — define acceptable accuracy thresholds during architecture, not during QA.
+      - **Per-tier targets**: Tier 1 (core business logic): ≥95% accuracy required — if below threshold, the feature blocks the milestone. Tier 2 (suggestions): ≥80% accuracy — below threshold, degrade gracefully (show confidence indicator or offer manual override). Tier 3 (chatbot): ≥70% accuracy — below threshold, disable the feature rather than showing bad results.
+      - **Measurement method**: Each AI feature must define how accuracy is measured before development starts. Options: golden dataset eval score, manual review of N random outputs, user feedback rate, or structured output schema validation rate. The method is documented alongside the accuracy target in ARCHITECTURE.md.
+      - **Fallback triggers**: Each tier has a defined response when accuracy drops below threshold. Tier 1: block milestone, escalate to human (human may override and accept the lower accuracy). Tier 2: enable manual override UI alongside AI results. Tier 3: disable feature with a "coming soon" placeholder.
+      - **Stop-optimizing line**: Once an AI feature meets its accuracy target, stop prompt-tuning. A Tier 3 chatbot at 75% accuracy does not need to reach 90% — that time is better spent on Tier 1 features. Log the achieved accuracy in DECISIONS.md and move on.
 12. **Deployment Topology** — This is the operational source of truth for all DevOps tasks. Every infra task MUST reference this section. Include:
     - **Service map**: Every container/process, its internal port, its exposed port, and how they communicate (Docker network, localhost, etc.)
     - **Port mapping table**: Internal vs external ports. Which ports are exposed to the host. Which are Docker-internal only. Scripts and health checks must use the correct (external) port.
@@ -838,6 +844,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for full architecture.
 27. **Defensive scripting.** All shell scripts must: start with `set -euo pipefail`; never use `2>/dev/null` or `|| true` to suppress errors unless there is a specific, commented reason explaining what error is expected and why it's safe to ignore; explicitly load required env files (e.g., `source .env.production` or `--env-file .env.production`) — never assume env vars exist in the shell; validate required env vars at the top of the script before using them; exit non-zero on failure — never print "may have succeeded" when you don't know; use the correct ports/URLs from the deployment topology, not hardcoded dev defaults.
 28. **Every API call must handle errors.** Frontend code that calls an API endpoint must check the response status before using the data. `const data = await res.json()` without checking `res.ok` is a bug. Wrap API calls with proper error handling: check status, parse error messages, show user-facing feedback. Silent failures are worse than crashes — they create ghost states the user can't diagnose.
 29. **Build accessible by default.** Use semantic HTML elements before ARIA attributes. Every interactive element must be keyboard-accessible with a visible focus indicator. Every form input needs a visible label. Every image needs alt text. Run axe-core accessibility scans in Playwright tests — WCAG violations are bugs, not nice-to-haves.
+30. **Respect AI failure budgets.** Every AI feature has a defined accuracy target per tier. Tier 1 ≥95%, Tier 2 ≥80%, Tier 3 ≥70%. If a feature is below its target, it blocks the milestone — escalate to the human, who may override. If a feature meets its target, stop optimizing and move on. Don't spend time pushing a Tier 3 chatbot from 75% to 90% when Tier 1 features need attention.
 
 ## Testing
 - **Unit tests**: [framework, e.g., Jest / pytest]
@@ -1133,6 +1140,8 @@ If any truth condition fails, the **milestone is not complete** — regardless o
 2. **Security** runs a quick scan of all code merged in this milestone — flags concerns.
 3. **Architect** verifies no architectural drift from the documented design.
 4. **DevOps** confirms CI/CD pipeline is green and infra is stable.
+9. **Prompt eval check (if milestone touched AI prompts):** Run all modified prompts against their golden datasets. Verify no regressions below baseline scores. If a prompt was added without eval coverage, create the golden dataset before the milestone passes.
+10. **AI accuracy check (if milestone includes AI features):** For each AI feature in the milestone, verify it meets its per-tier accuracy target from ARCHITECTURE.md. Tier 1 below 95%: blocks — escalate to human for override decision. Tier 2 below 80%: log the gap, enable manual override fallback. Tier 3 below 70%: disable the feature. If the human overrides a below-target Tier 1 feature, log the decision and accepted accuracy level in DECISIONS.md.
 
 **Step 3: PM Compiles Milestone Report for Human**
 

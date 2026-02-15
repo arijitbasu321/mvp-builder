@@ -57,6 +57,7 @@ Every element of the framework described in this paper exists because it solves 
 | Recovery & pivot protocol | Grinding against broken assumptions |
 | Trust-tiered skills with security vetting | Supply chain injection via malicious skill files |
 | Automated accessibility scanning in verification waves | Accessibility promises in spec but never verified |
+| Per-tier AI accuracy targets with human override | Endless optimization or silent quality gaps in AI features |
 
 ---
 
@@ -371,6 +372,22 @@ The framework addresses this asymmetry with a prompt evaluation framework that t
 
 The key insight is that prompts are probabilistic — the same input can produce different outputs across runs. Traditional pass/fail testing does not apply directly. The eval framework uses scoring (does the output contain expected elements, match expected structure, fall within expected length bounds) rather than exact matching. The scores establish a baseline, and regressions against that baseline are the signal, not individual test failures.
 
+### 7.7 AI Failure Budgets
+
+AI features are inherently probabilistic. A meal plan generator will not produce a perfect plan every time. A document summarizer will occasionally miss a key point. A chatbot will sometimes give a mediocre answer. Without explicit accuracy targets, teams face two failure modes: endless optimization (spending days pushing a chatbot from 78% to 82% when 70% was good enough) or silent quality gaps (shipping a core feature at 85% accuracy without anyone defining whether that is acceptable).
+
+The framework requires the Architect to define per-tier accuracy targets during Phase 2, before any AI code is written:
+
+- **Tier 1 (core business logic): ≥95% accuracy.** These features are the product's value proposition. If a Tier 1 feature falls below its target, it blocks the milestone — the PM escalates to the human, who can override and accept a lower threshold with the decision logged. The fallback is always a non-AI path that works correctly 100% of the time.
+- **Tier 2 (smart suggestions): ≥80% accuracy.** These features enhance the experience but are not essential. Below threshold, the feature degrades gracefully — showing a confidence indicator, offering a manual override, or reducing the feature's prominence in the UI.
+- **Tier 3 (chatbot): ≥70% accuracy.** Conversational quality is subjective and variable. Below threshold, the feature is disabled entirely with a placeholder rather than showing users a visibly broken experience.
+
+Each AI feature must also define its **measurement method** during architecture — golden dataset eval score, manual review of N random samples, structured output validation rate, or user feedback signals. The measurement method is documented in ARCHITECTURE.md alongside the accuracy target.
+
+The critical behavioral rule is the **stop-optimizing line**. Once a feature meets its tier's accuracy target, the team stops prompt-tuning and moves on. A Tier 3 chatbot at 75% accuracy does not need to reach 90%. That engineering time is better spent on Tier 1 features that are below their target. The achieved accuracy is logged in the decision file, creating a clear record of "good enough" that prevents future re-litigation.
+
+The human retains override authority at every level. If a Tier 1 feature is at 90% and the human decides that is acceptable for MVP launch, that is a valid product decision — not a quality failure. The framework ensures the decision is explicit, informed, and documented rather than accidental.
+
 ---
 
 ## 8. Tooling Augmentation
@@ -600,6 +617,7 @@ If the product includes AI features, define:
 - Cost estimation (approximate calls per user per day, cost per call, projected monthly spend).
 - AI response caching strategy (cacheable queries, TTL per use case).
 - Prompt evaluation framework: golden datasets per Tier 1 prompt (20-30 cases), automated regression scoring before any prompt change merges, versioned prompt files with rollback capability.
+- AI failure budgets: per-tier accuracy targets (Tier 1 ≥95%, Tier 2 ≥80%, Tier 3 ≥70%), measurement method per feature, fallback triggers below threshold, stop-optimizing line, human override authority.
 - AI-specific security audit checklist (prompt injection defenses, system prompt exposure, data leakage, cost abuse, PII handling).
 
 ### 12.8 Add Protocols for External Dependencies
@@ -646,6 +664,8 @@ The key ideas are:
 9. **Every practice must earn its place.** If a process element doesn't prevent a specific, named failure mode, it is overhead. Remove it.
 
 10. **Tooling is a supply chain.** Skills and MCP servers are force multipliers, but they are also instruction injection vectors. Trust-tiered sources, mandatory security vetting, and independent two-pass review for community-sourced skills protect the team from the most common supply chain attack in the AI agent ecosystem.
+
+11. **AI quality needs explicit budgets.** Without per-tier accuracy targets, teams either over-optimize non-critical features or ship critical features below acceptable quality. Defining "good enough" during architecture — not during QA — prevents both failure modes and gives the human informed override authority.
 
 These principles are rooted in Claude Code's Agent Teams as the primary execution model, but the underlying concepts are portable. Agent Teams is preferred because it provides the strongest structural enforcement of the framework's core principles — independent contexts, persistent role identity, parallel execution, and message-based coordination. Sub-agents via the Task tool offer a viable fallback that preserves fresh context isolation while sacrificing parallelism and peer coordination. The broader concepts — role separation, context management, truth conditions, autonomy boundaries — apply to any AI coding agent that supports autonomous execution, task delegation, and file-based state management. The specific implementation details (CLAUDE.md vs. AGENTS.md, GitHub Issues vs. Linear, Next.js vs. other stacks) are interchangeable. The architecture of the process is what matters.
 

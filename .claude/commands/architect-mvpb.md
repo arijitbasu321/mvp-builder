@@ -62,6 +62,7 @@ Create `docs/ARCHITECTURE.md` with:
     - AI Response Caching (cacheable queries, TTL per use case)
     - Cost Estimation (~X calls/user/day × ~Y cost = ~Z monthly)
     - Token & Cost Tracking schema
+    - AI Failure Budget (per-tier accuracy targets: Tier 1 ≥95%, Tier 2 ≥80%, Tier 3 ≥70%; measurement method per feature; fallback triggers when below threshold; stop-optimizing line — once target is met, move on)
 12. **Deployment Topology** — This is the operational source of truth for all DevOps tasks. Every infrastructure task MUST reference this section. Include:
     - **Service map**: Every container/process, its internal port, its exposed port, and how services communicate (Docker network, localhost, etc.)
     - **Port mapping table**: Internal vs external ports. Which ports are exposed to the host vs Docker-internal only. All scripts and health checks must use the correct (external) port.
