@@ -19,13 +19,25 @@ A structured playbook for building production-ready, AI-powered applications usi
 }
 ```
 
-2. Copy the `.claude/commands/` directory into your project root. This gives you the slash commands below.
+2. Clone this repo and run `setup.sh` to bootstrap your project:
 
-3. Copy `APP_BUILDER_PLAYBOOK_3.md` into your project root for reference (the commands extract what they need from it, but having the full playbook available is useful for edge cases).
+```bash
+git clone https://github.com/arijitbasu321/mvp-builder.git
+cd mvp-builder
+
+# Basic — copy toolkit into your project repo
+./setup.sh /path/to/your-project
+
+# With pre-existing user stories/epics file
+./setup.sh /path/to/your-project epics.md
+```
+
+This copies the slash commands, settings, and playbook into your project. After setup, you work entirely from your project repo.
 
 ## Quick Start
 
 ```bash
+cd /path/to/your-project
 claude --dangerously-skip-permissions
 ```
 
@@ -33,14 +45,9 @@ Then:
 
 ```
 /start-mvpb
-
-Project Name: MyApp
-Idea: A meal planning app that generates weekly grocery lists using AI
-Target Users: Busy professionals who want to eat healthier
-Domain: myapp.com
 ```
 
-The PM takes over from there.
+The PM takes over from there — it will ask for your project name, idea, target users, AI provider, and hosting preferences interactively.
 
 ## Commands
 
