@@ -38,6 +38,7 @@ You MUST use Claude Code's native Agent Teams to parallelize wave execution. Thi
 2. For each wave, spawn all teammates simultaneously — use multiple `Task` tool calls with `team_name` in a **single message**. Each teammate gets one task, a name matching its role (e.g., `developer-1`, `developer-2`, `qa`, `security`), and the handoff context described in the Task Loop below.
 3. Teammates execute in parallel with their own independent context windows, CLAUDE.md, and MCP servers.
 4. PM monitors via `SendMessage` and collects results. When all teammates report back, verify the wave and move to the next.
+5. **After a wave completes, shut down all teammates from that wave** via `SendMessage` (type: `shutdown_request`) before spawning the next wave. Do not let idle teammates accumulate across waves.
 
 **⚠️ Teammate cap: maximum 5 teammates per wave.** If a wave has more than 5 tasks, split it into sub-waves of ≤5 and run them sequentially. This prevents token burn, rate-limit hits, and context degradation. The cap applies to ALL teammate types combined (developers + QA + security + devops).
 
@@ -46,6 +47,7 @@ You MUST use Claude Code's native Agent Teams to parallelize wave execution. Thi
 - Do NOT do tasks yourself. You are the orchestrator — delegate everything via Agent Teams.
 - Do NOT fall back to the Task tool without `team_name` (sub-agents) when Agent Teams is available. Agent Teams gives teammates persistent identity, their own CLAUDE.md, and message-based coordination. Use it.
 - Do NOT exceed 5 teammates in a single wave. Ever. Split into sub-waves instead.
+- Do NOT leave finished teammates running. Shut them down before starting the next wave.
 
 **Single-task waves are fine.** If a wave has only 1 task, one teammate is correct. But if a wave has 2+ tasks, all teammates MUST be spawned in the same message (up to the 5-teammate cap).
 
@@ -180,6 +182,14 @@ The validation task:
 7. Tear down: `docker compose down -v`.
 
 If ANY step fails, fix and re-validate. Do not proceed to verification wave with broken infrastructure.
+
+## Team Cleanup (Non-Negotiable)
+
+**Between waves:** After collecting all results and verifying a wave, send `shutdown_request` to every teammate from that wave before spawning the next wave's teammates. Idle teammates waste tokens and count against rate limits.
+
+**At milestone end:** After the milestone checkpoint is approved, shut down ALL remaining teammates and call `TeamDelete` to clean up the team. The next milestone starts with a fresh `TeamCreate`.
+
+**If a teammate is unresponsive:** If a teammate doesn't respond to `shutdown_request` within a reasonable time, proceed — don't block the next wave waiting for a clean shutdown.
 
 ## Milestone Checkpoint (after each milestone)
 

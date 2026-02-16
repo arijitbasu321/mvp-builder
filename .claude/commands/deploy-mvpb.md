@@ -13,7 +13,8 @@ The same Agent Teams rules from Phase 4 apply here. You are the orchestrator —
 - **Step 2 parallelizes infrastructure tasks:** Many of the infra tasks (DNS/SSL, CI/CD pipeline, monitoring/error tracking, health check endpoint, structured logging, AI cost alerts) are independent. Spawn DevOps teammates for independent tasks simultaneously in a single message. Each teammate configures one piece of infrastructure, verifies it, and reports back.
 - **Maximum 5 teammates per wave** (same cap as Phase 4). If more than 5 infra tasks are independent, split into sub-waves of ≤5.
 - Dependencies still run sequentially (e.g., production domain must be configured before DNS records), but everything that can run in parallel should.
-- All other Agent Teams rules (fresh context per task, handoff context, no sequential spawning of independent work) carry over from Phase 4's "Agent Teams Parallel Dispatch (Non-Negotiable)" section.
+- **Shut down teammates between waves** via `shutdown_request` before spawning the next batch. At phase end, shut down all remaining teammates and call `TeamDelete`.
+- All other Agent Teams rules (fresh context per task, handoff context, no sequential spawning of independent work, teammate cleanup) carry over from Phase 4.
 
 ## Step 0: Pre-Deployment Verification
 

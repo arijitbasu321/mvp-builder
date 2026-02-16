@@ -354,7 +354,9 @@ Enable `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in Claude Code settings. The PM 
 4. Teammates execute independently — they have their own context window, read CLAUDE.md automatically, create branches, implement, test, commit.
 5. Teammates report back via `SendMessage` to the PM. PM receives messages automatically.
 6. PM verifies the wave: pulls branches, runs full test suite, merges to `develop`, updates STATE.md.
-7. Repeat for next wave. Shut down teammates via `SendMessage` (type: `shutdown_request`) when the milestone is done.
+7. **Shut down all teammates from the completed wave** via `SendMessage` (type: `shutdown_request`) before spawning the next wave. Do not let idle teammates accumulate.
+8. Repeat for next wave.
+9. At milestone end, shut down ALL remaining teammates and call `TeamDelete`. The next milestone starts with a fresh `TeamCreate`.
 
 Key considerations for Agent Teams:
 - **Token cost scales linearly** — a 5-teammate team burns ~5x the tokens of a single session. This reinforces the inverted review default: spawn 3 reviewers for sensitive changes, but don't spin up a full team for a CSS fix.

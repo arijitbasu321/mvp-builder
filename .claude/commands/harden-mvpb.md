@@ -13,7 +13,8 @@ The same Agent Teams rules from Phase 4 apply here. You are the orchestrator —
 - **Steps 1 & 2 run in parallel:** Spawn a QA teammate for the brainstorming session (Step 1) and a Security teammate for the deep audit (Step 2) simultaneously in a single message. Both can work independently — QA reviews for bugs, UX, and polish while Security runs the adversarial audit.
 - **Step 3 (fixes) parallelizes like Phase 4 waves:** When resolving Critical & High issues, spawn developer teammates for independent fixes simultaneously. Each teammate gets one issue, creates a branch, fixes, tests, and reports back. Do not work fixes sequentially when they touch different parts of the codebase.
 - **Maximum 5 teammates per wave** (same cap as Phase 4). If more than 5 fixes are independent, split into sub-waves of ≤5.
-- All other Agent Teams rules (fresh context per task, handoff context, no sequential spawning of independent work) carry over from Phase 4's "Agent Teams Parallel Dispatch (Non-Negotiable)" section.
+- **Shut down teammates between waves** via `shutdown_request` before spawning the next batch. At phase end, shut down all remaining teammates and call `TeamDelete`.
+- All other Agent Teams rules (fresh context per task, handoff context, no sequential spawning of independent work, teammate cleanup) carry over from Phase 4.
 
 ## Step 1: Brainstorming Session
 
