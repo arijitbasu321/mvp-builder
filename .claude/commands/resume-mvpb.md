@@ -44,7 +44,8 @@ After loading state and reporting status, **immediately resume the current phase
 | 4 — Development | `.claude/commands/build-mvpb.md` |
 | 5 — Hardening | `.claude/commands/harden-mvpb.md` |
 | 6 — Final Code Sweep | `.claude/commands/sweep-mvpb.md` |
-| 7 — Deployment | `.claude/commands/deploy-mvpb.md` |
-| 8 — Iteration | `.claude/commands/iterate-mvpb.md` |
+| 7 — Playwright Acceptance Loop | `.claude/commands/accept-mvpb.md` |
+| 8 — Deployment | `.claude/commands/deploy-mvpb.md` |
+| 9 — Iteration | `.claude/commands/iterate-mvpb.md` |
 
 **Exception**: If the current phase is sitting at an unapproved 🧑 Human gate, **STOP** and present the gate checklist to the human instead of resuming execution. Only continue after the human approves.

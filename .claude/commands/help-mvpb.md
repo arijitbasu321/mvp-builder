@@ -35,8 +35,9 @@ Then display ONLY the reference content below. Do NOT add project-specific analy
 - `/build-mvpb` — Phase 4: Build the app milestone by milestone
 - `/harden-mvpb` — Phase 5: Security audit, quality review, bug fixes
 - `/sweep-mvpb` — Phase 6: Final code sweep by Architect + Developers
-- `/deploy-mvpb` — Phase 7: Production deployment, monitoring, demo script
-- `/iterate-mvpb` — Phase 8: Post-MVP improvements and backlog
+- `/accept-mvpb` — Phase 7: Playwright acceptance loop (browser apps only)
+- `/deploy-mvpb` — Phase 8: Production deployment, monitoring, demo script
+- `/iterate-mvpb` — Phase 9: Post-MVP improvements and backlog
 
 **Utility Commands:**
 - `/status-mvpb` — Quick status: phase, milestone, wave, blockers
@@ -56,18 +57,20 @@ Then display ONLY the reference content below. Do NOT add project-specific analy
 /build-mvpb             ← develop (repeat until done)
 /harden-mvpb            ← security audit (human approves)
 /sweep-mvpb             ← builders' final review (human approves)
+/accept-mvpb            ← Playwright acceptance loop (browser apps only)
 /deploy-mvpb            ← ship it (human approves)
 ```
 
 ## Your Job
 
-6 human gates. Between them, provide API keys when asked and make decisions when escalated. Otherwise, stay out of the way.
+7 human gates. Between them, provide API keys when asked and make decisions when escalated. Otherwise, stay out of the way.
 
 - After `/spec` — What the product does
 - After `/architect` — How it's built
 - After `/plan` — The build order
 - After `/harden` — Security posture
 - After `/sweep` — Code quality and integration
+- After `/accept` — Playwright acceptance (3 clean passes)
 - After `/deploy` — Launch readiness
 
 ## Key Files

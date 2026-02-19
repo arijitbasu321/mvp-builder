@@ -12,6 +12,43 @@ This playbook is divided into **8 phases**, each with a clear gate. Do not advan
 
 Hand this document to your Claude Code instance. The PM agent will take the lead, follow the playbook sequentially, delegate to the team, and check in with you at every gate. **You talk to the PM. The PM talks to the team.**
 
+### Key Concepts
+
+These terms are used throughout the playbook. Here's how they nest:
+
+```
+Phase (8 total — the major stages of this playbook)
+│   e.g., Phase 4: Development
+│
+├── Gate — checkpoint at the end of each phase; approved by human or PM
+│
+└── Milestone (versioned deliverables within Phase 4)
+    │   e.g., v0.1 Foundation, v0.2 Core Feature + AI
+    │
+    ├── Truth Condition — observable behavior that must hold for the
+    │   milestone to pass ("user can register and log in")
+    │
+    └── Wave (batches of tasks within a milestone)
+        │   e.g., Wave 1: scaffolding + DB + CI (independent, run in parallel)
+        │
+        └── Task — one atomic unit of work, assigned to one teammate
+            │   e.g., "Build POST /api/auth/register endpoint"
+            │
+            └── Teammate — an Agent Teams member with its own
+                context window, working in its own git worktree
+```
+
+| Term | What it is | Scope |
+|------|-----------|-------|
+| **Phase** | A major stage of the playbook (0–7), each ending with a gate | The whole project |
+| **Gate** | A checkpoint requiring sign-off before the next phase begins | End of each phase |
+| **Milestone** | A versioned deliverable (v0.1, v0.2, …) with defined outcomes | Within Phase 4 |
+| **Truth Condition** | An observable, testable behavior proving a milestone works | Per milestone |
+| **Wave** | A batch of independent tasks that run in parallel | Within a milestone |
+| **Task** | A single atomic unit of work for one teammate | Within a wave |
+| **Teammate** | An Agent Teams member with its own context window and worktree | Per task |
+| **Worktree** | An isolated git checkout where a teammate works without conflicts | Per teammate |
+
 ### Autonomy Model
 
 The human is the **product owner, tech director, and project sponsor** — not a babysitter. The team should operate like experienced professionals who own their domain and make routine decisions independently.
@@ -60,8 +97,10 @@ Each phase has a **Gate Approved By** field that determines who signs off before
 | 3     | Task Breakdown & Planning     | 🧑 Human         |
 | 4     | Development                   | 🤖 Agent (PM) *  |
 | 5     | Quality & Security Hardening  | 🧑 Human         |
-| 6     | Deployment & Launch Prep      | 🧑 Human         |
-| 7     | Iteration & Backlog           | Ongoing — no gate |
+| 6     | Final Code Sweep              | 🧑 Human         |
+| 7     | Playwright Acceptance Loop    | 🧑 Human (browser apps only) |
+| 8     | Deployment & Launch Prep      | 🧑 Human         |
+| 9     | Iteration & Backlog           | Ongoing — no gate |
 
 > \* Phase 4 individual milestone checkpoints require human sign-off. The Integration Gate verifies all milestones work together end-to-end.
 
@@ -160,10 +199,10 @@ Conflicts between agents are inevitable. Here's the resolution hierarchy:
 |----------|-----------|--------|-------------|
 | **Critical** | Exploitable vulnerability with immediate user impact (auth bypass, data exposure, RCE) | Must fix before merge | Yes |
 | **High** | Significant vulnerability that requires specific conditions to exploit (CSRF, privilege escalation edge cases) | Must fix before launch | Yes |
-| **Medium** | Theoretical vulnerability or defense-in-depth gap (timing attacks on token comparison, missing secondary rate limits) | Fix in Phase 8 — document and accept risk for MVP | No |
+| **Medium** | Theoretical vulnerability or defense-in-depth gap (timing attacks on token comparison, missing secondary rate limits) | Fix in Phase 9 — document and accept risk for MVP | No |
 | **Low** | Best-practice deviation with minimal real-world risk (suboptimal CSP header, verbose error messages in non-sensitive endpoints) | Document, add to backlog | No |
 
-> Only **Critical** and **High** findings should block development. Security should still flag Medium and Low findings, but they get logged as issues for Phase 8, not as blockers.
+> Only **Critical** and **High** findings should block development. Security should still flag Medium and Low findings, but they get logged as issues for Phase 9, not as blockers.
 
 > **Escalation format** (PM to human):
 >
@@ -186,8 +225,9 @@ Each phase has a **lead agent** who drives the work, supported by others:
 | 4 — Development | Developer | QA (continuous testing), Architect (code review), Security (security review), DevOps (CI/CD) |
 | 5 — Hardening | Security (lead), QA (co-lead) | Developer (fixes), DevOps (infra hardening) |
 | 6 — Final Code Sweep | Architect (lead), Developer (co-lead) | PM (orchestration), QA (regression verification) |
-| 7 — Deployment | DevOps | Security (production security), QA (smoke tests), PM (demo script) |
-| 8 — Iteration | PM | All agents contribute to retrospective and backlog |
+| 7 — Playwright Acceptance Loop | QA (lead) | Developer (fixes), PM (orchestration) |
+| 8 — Deployment | DevOps | Security (production security), QA (smoke tests), PM (demo script) |
+| 9 — Iteration | PM | All agents contribute to retrospective and backlog |
 
 ### Context Management (Preventing Context Rot)
 
@@ -314,7 +354,7 @@ Milestone v0.2 — Core Feature + AI
   - **Medium risk** (same area — e.g., two tasks adding different routes to the same router file): prefer sequential waves.
   - **High risk** (same function/component — e.g., two tasks modifying the same React component or utility): must be in sequential waves.
 - A wave only starts after the previous wave is **fully complete and verified**.
-- The PM is responsible for analyzing task dependencies and organizing waves.
+- The PM is responsible for organizing waves, **assisted by the Architect** who assesses task dependencies, file boundaries, and overlap risk from ARCHITECTURE.md knowledge. The PM should spawn an Architect teammate for wave planning in Phase 3 and consult the Architect during Phase 4 if wave composition is uncertain.
 - Wave organization is documented in `.planning/STATE.md` so it survives session resets.
 - The final wave of each milestone is always **verification** (QA + Security + Exploratory QA review).
 
@@ -1001,12 +1041,13 @@ Each issue must be small enough for a **fresh teammate to complete in a single s
 
 ### Step 3.3 — Wave Planning & Prioritization
 
-For each milestone, the PM organizes issues into **waves** based on dependencies:
+For each milestone, the PM organizes issues into **waves** based on dependencies. **The PM spawns an Architect teammate to advise on wave composition** — the Architect knows the codebase structure, file boundaries, and component dependencies from ARCHITECTURE.md and can assess which tasks are truly independent, which files each task will touch, and what the merge-conflict risk is for co-waved tasks.
 
-1. **Analyze dependencies** — Which tasks are independent? Which depend on others?
-2. **Group into waves** — Independent tasks go in the same wave. Dependent tasks go in later waves.
-3. **Always end with a verification wave** — The final wave of each milestone is QA + Security review.
-4. **Document the wave plan** in `.planning/STATE.md`.
+1. **Spawn Architect for wave planning** — Give the Architect the task list and ARCHITECTURE.md. The Architect returns: (a) dependency graph between tasks, (b) files/areas each task will touch, (c) overlap risk assessment (low/medium/high) for candidate same-wave groupings.
+2. **Analyze dependencies** — Using the Architect's assessment, determine which tasks are independent and which depend on others.
+3. **Group into waves** — Independent tasks go in the same wave. Dependent tasks go in later waves. Use the Architect's overlap risk assessment to decide whether same-area tasks can safely co-wave.
+4. **Always end with a verification wave** — The final wave of each milestone is QA + Security review.
+5. **Document the wave plan** in `.planning/STATE.md`.
 
 ```markdown
 ## Example: v0.1 — Foundation — Wave Plan
@@ -1378,7 +1419,7 @@ All findings logged as GitHub issues with appropriate labels (`architecture`, `c
 
 ### Step 6.2 — Fix Critical and High Issues
 
-Work through findings using the Phase 4 task loop. Group independent fixes into waves, spawn developer teammates simultaneously. Priority: bugs → integration issues → architectural drift → code quality. Medium/Low issues that don't affect core functionality are logged for Phase 8 (Iteration).
+Work through findings using the Phase 4 task loop. Group independent fixes into waves, spawn developer teammates simultaneously. Priority: bugs → integration issues → architectural drift → code quality. Medium/Low issues that don't affect core functionality are logged for Phase 9 (Iteration).
 
 ### Step 6.3 — Regression Verification
 
@@ -1394,11 +1435,113 @@ Work through findings using the Phase 4 task loop. Group independent fixes into 
 - [ ] All Critical and High sweep issues resolved.
 - [ ] Full test suite and Playwright E2E pass after fixes.
 - [ ] Production Docker build verified.
-- [ ] Remaining Medium/Low issues logged for Phase 8.
+- [ ] Remaining Medium/Low issues logged for Phase 9.
 
 ---
 
-## Phase 7: Deployment & Launch Prep
+## Phase 7: Playwright Acceptance Loop
+
+> **Applies to browser-based apps only.** If the project has no browser-based UI (e.g., CLI tools, APIs, backend services), skip this phase entirely and proceed directly to Phase 8 (Deployment & Launch Prep).
+
+### Goal
+
+Exhaustive UI acceptance testing using a Ralph Wiggum loop. A QA Tester runs full Playwright passes — clicking every link, testing every form, trying every permutation — and logs all issues. Developers fix them. The loop only ends when the Tester makes **3 consecutive clean passes with zero issues logged**.
+
+This phase exists because Playwright testing was consistently deprioritized during Phase 4 verification waves. Making it a dedicated phase with a hard exit criterion ensures it cannot be skipped.
+
+### The Loop
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  RALPH LOOP — Playwright Acceptance                     │
+│                                                         │
+│  1. PM spawns QA Tester teammate (in worktree)          │
+│                                                         │
+│  2. Tester: Full Playwright pass                        │
+│     ├── Click every link, button, interactive element   │
+│     ├── Test every form (valid, invalid, empty, edge)   │
+│     ├── Test every user flow end-to-end                 │
+│     ├── Test every permutation and combination          │
+│     ├── Responsive check (375/768/1280px)               │
+│     ├── Accessibility scan (axe-core, keyboard nav)     │
+│     ├── Auth boundaries (expired tokens, role checks)   │
+│     ├── Error states (API failures, loading, empty)     │
+│     └── Log ALL issues as GitHub issues                 │
+│                                                         │
+│  3. Tester reports findings to PM                       │
+│     └── If zero issues → increment clean pass counter   │
+│         If any issues → reset clean pass counter to 0   │
+│                                                         │
+│  4. PM assigns developers to fix (parallel waves)       │
+│     ├── Same wave rules as Phase 4 (max 5 per wave)     │
+│     ├── Developers fix → test → commit → report back    │
+│     └── PM merges, cleans up worktrees                  │
+│                                                         │
+│  5. Shut down all teammates, go to step 1               │
+│                                                         │
+│  EXIT: 3 consecutive clean passes with ZERO issues      │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Rules
+
+1. **Tester never fixes.** The QA Tester only tests and logs. Developers fix.
+2. **Developers never test their own fixes.** The Tester validates in the next pass.
+3. **Clean pass counter resets on any issue.** If pass 2 finds even 1 issue, the counter goes back to 0.
+4. **Every pass is exhaustive.** The Tester must click every link, test every form, try every path. No shortcuts, no "I already checked that last time."
+5. **Issues are GitHub issues.** Logged with labels (`bug`, `ui`, `accessibility`, `ux`) so they're trackable.
+6. **Same Agent Teams rules apply.** Worktree isolation, max 5 teammates per fix wave, shutdown between waves, teammate cleanup.
+
+### Tester Pass Scope
+
+Each pass covers ALL of the following:
+
+1. **Navigation completeness** — Click every link, button, nav item, and interactive element. Flag dead links, buttons without handlers, 404 pages.
+2. **Form testing** — Every form with: valid input, empty submission, max-length input, special characters, rapid repeated submission.
+3. **User flow testing** — Walk through every user story from the product spec end-to-end, including edge cases and alternative paths.
+4. **Auth boundary testing** — Access authenticated routes without auth. Access admin routes as user. Test token expiry and refresh. Test logout.
+5. **Error state testing** — Verify every API call handles non-200 responses. Test what the user sees on 401, 403, 500.
+6. **AI feature testing** — Edge-case inputs to every AI feature: very long text, empty text, other languages, adversarial prompts. Verify fallbacks.
+7. **Responsive testing** — Playwright screenshots at 375px, 768px, 1280px. Flag layout breaks.
+8. **Accessibility testing** — axe-core scan on every page. Keyboard-only navigation through all core workflows. Focus management on modals/dialogs. Visible focus indicators.
+9. **Loading and empty states** — Verify loading indicators exist. Verify empty states have appropriate messaging.
+
+### Agent Teams Workflow
+
+Same rules as Phase 4:
+- PM creates worktrees before spawning teammates
+- QA Tester gets a worktree for running tests and logging results
+- Developer fix waves: each developer gets a worktree per fix branch
+- Max 5 teammates per fix wave
+- Shut down all teammates between passes
+- At phase end: TeamDelete, remove all worktrees
+
+### Tracking
+
+PM tracks in STATE.md:
+```markdown
+## Phase 7 — Playwright Acceptance Loop
+Clean pass counter: [0/3]
+Pass 1: [N issues found — list GitHub issue numbers]
+  Fix wave 1: [issues fixed]
+  Fix wave 2: [issues fixed]
+Pass 2: [N issues found — list GitHub issue numbers]
+  Fix wave 1: [issues fixed]
+Pass 3: [0 issues — clean pass 1/3]
+Pass 4: [0 issues — clean pass 2/3]
+Pass 5: [0 issues — clean pass 3/3] ✅ EXIT
+```
+
+### Gate — `🧑 Human`
+
+- [ ] QA Tester has made 3 consecutive clean Playwright passes with zero issues.
+- [ ] All issues found during the loop are resolved and closed.
+- [ ] Full test suite passes.
+- [ ] Production Docker build verified after all fixes.
+
+---
+
+## Phase 8: Deployment & Launch Prep
 
 ### Goal
 
@@ -1410,7 +1553,7 @@ Get the application running in a production(-like) environment with monitoring.
 2. **Verify containerized build from main**: Check out `main`, run `docker compose -f docker-compose.prod.yml up --build`. Everything must start healthy from `main`. This confirms `main` has all the files and configs needed for production.
 3. **Verify .env.example is complete**: Every env var used in the codebase, Dockerfile, docker-compose, and scripts must have an entry in `.env.example` with a description.
 
-### Step 7.1 — Production Deployment Scripts
+### Step 8.1 — Production Deployment Scripts
 
 DevOps creates production-ready deployment scripts:
 
@@ -1418,9 +1561,9 @@ DevOps creates production-ready deployment scripts:
 - **`scripts/deploy-rollback.sh`** — Identify previous version → revert → verify backward-compatible migrations → smoke test.
 - **`scripts/seed.sh`** — Seed admin account + sample data. Configurable per environment (dev/staging/production).
 
-Both deploy scripts must be tested end-to-end before the Phase 7 gate.
+Both deploy scripts must be tested end-to-end before the Phase 8 gate.
 
-### Step 7.2 — Production Domain & Infrastructure
+### Step 8.2 — Production Domain & Infrastructure
 
 1. Configure the production domain (provided in inputs).
 2. Set up DNS records pointing to the hosting provider.
@@ -1437,7 +1580,7 @@ Both deploy scripts must be tested end-to-end before the Phase 7 gate.
 8. Configure logging for production (structured JSON logs, appropriate levels).
 9. Set up AI cost monitoring alerts (daily/weekly spend thresholds).
 
-### Step 7.3 — Pre-Launch Checklist
+### Step 8.3 — Pre-Launch Checklist
 
 Agent runs through and confirms:
 
@@ -1458,7 +1601,7 @@ Agent runs through and confirms:
 - [ ] `.env.example` is up to date (including all AI-related env vars).
 - [ ] README has correct local setup and deploy instructions.
 
-### Step 7.4 — Demo Script
+### Step 8.4 — Demo Script
 
 Create `docs/DEMO.md`:
 
@@ -1479,7 +1622,7 @@ Create `docs/DEMO.md`:
 
 ---
 
-## Phase 8: Iteration & Backlog
+## Phase 9: Iteration & Backlog
 
 ### Goal
 
@@ -1531,9 +1674,9 @@ This phase is ongoing and follows the same Development Loop from Phase 4.
 | `.planning/DECISIONS.md` | Decision log — settled questions across sessions | Phase 0+ |
 | `docs/PRODUCT_SPEC.md`   | Full product specification with requirements         | Phase 1    |
 | `docs/ARCHITECTURE.md`   | Technical architecture, data model, API design, AI architecture | Phase 2    |
-| `docs/DEMO.md`           | MVP demo walkthrough script                          | Phase 7    |
-| `scripts/deploy.sh`      | Production deployment script                         | Phase 7    |
-| `scripts/deploy-rollback.sh` | Rollback to previous deployment                  | Phase 7    |
+| `docs/DEMO.md`           | MVP demo walkthrough script                          | Phase 8    |
+| `scripts/deploy.sh`      | Production deployment script                         | Phase 8    |
+| `scripts/deploy-rollback.sh` | Rollback to previous deployment                  | Phase 8    |
 | `scripts/seed.sh`        | Database seed script                                 | Phase 4    |
 | `skills/`                | Downloaded skill files for agent reference            | Phase 2    |
 | `.env.example`           | Environment variable template (including AI keys)    | Phase 2    |
@@ -1578,7 +1721,7 @@ Set these up in the repo during Phase 0:
 
 ## Appendix D: Future Automation (Post-v1.0)
 
-These autonomous pipelines are **not part of the MVP build**. They are documented here for Phase 8 (Iteration & Backlog) once the product is stable, the test suite is trustworthy, and the team has confidence in the codebase.
+These autonomous pipelines are **not part of the MVP build**. They are documented here for Phase 9 (Iteration & Backlog) once the product is stable, the test suite is trustworthy, and the team has confidence in the codebase.
 
 ### Autonomous Pipelines to Consider
 

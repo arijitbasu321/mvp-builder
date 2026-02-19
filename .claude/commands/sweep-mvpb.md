@@ -85,7 +85,7 @@ Priority order:
 3. **Architectural drift** — Update ARCHITECTURE.md or fix code to match
 4. **Code quality** — Dead code, inconsistent patterns, missing indexes
 
-Medium and Low issues that don't affect core functionality: log them for Phase 8 (Iteration), don't block deployment.
+Medium and Low issues that don't affect core functionality: log them for Phase 9 (Iteration), don't block deployment.
 
 ## Step 3: Regression Verification
 
@@ -106,10 +106,13 @@ Present the sweep findings and resolutions to the human:
 - [ ] All Critical and High issues from the sweep are resolved.
 - [ ] Full test suite and Playwright E2E suite pass.
 - [ ] Production Docker build verified after fixes.
-- [ ] Remaining Medium/Low issues logged for Phase 8.
+- [ ] Remaining Medium/Low issues logged for Phase 9.
 
-Once approved, update STATE.md. Log: **"Approved — moving to Deployment & Launch Prep."**
+Once approved, update STATE.md. Log the appropriate message below.
 
 ## ➡️ Auto-Chain
 
-This phase ends with a 🧑 Human gate. **STOP and wait** for the human to explicitly approve the gate checklist. Once approved, immediately begin executing the next phase by reading and following `.claude/commands/deploy-mvpb.md`.
+This phase ends with a 🧑 Human gate. **STOP and wait** for the human to explicitly approve the gate checklist. Once approved, check whether the project has a browser-based UI (check `docs/ARCHITECTURE.md` or `docs/PRODUCT_SPEC.md`):
+
+- **Browser-based app** → Log: **"Approved — moving to Playwright Acceptance Loop."** Read and follow `.claude/commands/accept-mvpb.md`.
+- **No browser UI** (CLI, API, backend service) → Log: **"Approved — skipping Playwright Acceptance Loop (no browser UI). Moving to Deployment & Launch Prep."** Read and follow `.claude/commands/deploy-mvpb.md`.
