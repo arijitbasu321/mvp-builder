@@ -376,10 +376,12 @@ The difference is critical. Completing tasks doesn't guarantee the product works
 - [ ] If the AI API is down, the user sees a graceful fallback message (not a crash).
 - [ ] The AI service layer logs the API call with token count and latency.
 - [ ] An unauthorized user cannot access the AI endpoint (returns 401).
-- [ ] Tier 1 AI prompts have ≥5 eval test cases that pass (expected input → expected output schema).
+- [ ] Golden datasets exist for all Tier 1 AI prompts (≥5 eval cases each in `prompts/evals/`) and all eval tests pass baseline.
 - [ ] Tier 1 AI features meet ≥95% accuracy target (or human has overridden with accepted level logged in DECISIONS.md).
 - [ ] All truth conditions can be verified by running `npm test` and the Playwright E2E suite.
 ```
+
+> **Mandatory**: Any milestone that introduces or modifies AI prompts MUST include the golden dataset truth condition above. The truth condition enforces that the golden dataset exists and that evals pass — not just that prompts "work." Without this, the eval framework gets silently deferred and the gap compounds across milestones.
 
 2. Truth conditions are defined **before development starts** — they're part of the milestone planning in Phase 3.
 3. At the milestone checkpoint, **QA verifies each truth condition** independently — not by checking if tasks are done, but by testing if the conditions hold.
@@ -971,6 +973,7 @@ Create `README.md` with:
 - [ ] `docs/ARCHITECTURE.md` is complete with data model, API design, and all sections.
 - [ ] `README.md` is complete.
 - [ ] Human has approved tech stack, data model, and API design.
+- [ ] AI Response Caching strategy is documented in ARCHITECTURE.md (either a caching plan with TTLs, or an explicit "not applicable" with reasoning).
 - [ ] MCP servers have been proposed, approved/denied, and configured (or fallbacks documented).
 - [ ] Skills have been proposed, approved/denied, and downloaded (or gaps documented).
 - [ ] All docs are consistent with each other and with the spec.
@@ -1241,7 +1244,7 @@ If any truth condition fails, the **milestone is not complete** — regardless o
 2. **Security** runs a quick scan of all code merged in this milestone — flags concerns.
 3. **Architect** verifies no architectural drift from the documented design.
 4. **DevOps** confirms CI/CD pipeline is green and infra is stable.
-9. **Prompt eval check (if milestone touched AI prompts):** Run all modified prompts against their golden datasets. Verify no regressions below baseline scores. If a prompt was added without eval coverage, create the golden dataset before the milestone passes.
+9. **Prompt eval check (if milestone touched AI prompts — BLOCKING):** Verify golden datasets exist in `prompts/evals/` for every Tier 1 prompt in this milestone. If any Tier 1 prompt lacks a golden dataset, the milestone is **BLOCKED** — create the golden dataset and run evals before proceeding. Then run all prompts against their golden datasets and verify no regressions below baseline scores. This step cannot be skipped by saying "no golden dataset exists to run against" — that itself is the failure.
 10. **AI accuracy check (if milestone includes AI features):** For each AI feature in the milestone, verify it meets its per-tier accuracy target from ARCHITECTURE.md. Tier 1 below 95%: blocks — escalate to human for override decision. Tier 2 below 80%: log the gap, enable manual override fallback. Tier 3 below 70%: disable the feature. If the human overrides a below-target Tier 1 feature, log the decision and accepted accuracy level in DECISIONS.md.
 
 **Step 3: PM Compiles Milestone Report for Human**
@@ -1496,6 +1499,8 @@ This phase exists because Playwright testing was consistently deprioritized duri
 
 Each pass covers ALL of the following:
 
+**Qualitative (does it work correctly?):**
+
 1. **Navigation completeness** — Click every link, button, nav item, and interactive element. Flag dead links, buttons without handlers, 404 pages.
 2. **Form testing** — Every form with: valid input, empty submission, max-length input, special characters, rapid repeated submission.
 3. **User flow testing** — Walk through every user story from the product spec end-to-end, including edge cases and alternative paths.
@@ -1505,6 +1510,15 @@ Each pass covers ALL of the following:
 7. **Responsive testing** — Playwright screenshots at 375px, 768px, 1280px. Flag layout breaks.
 8. **Accessibility testing** — axe-core scan on every page. Keyboard-only navigation through all core workflows. Focus management on modals/dialogs. Visible focus indicators.
 9. **Loading and empty states** — Verify loading indicators exist. Verify empty states have appropriate messaging.
+
+**Quantitative (does it meet measurable thresholds?):**
+
+10. **Page load performance** — Measure time-to-interactive for every major page using Playwright's `performance.timing` API. Flag any page over 3s on simulated 4G (`page.emulateNetworkConditions`). Record actual values.
+11. **Core Web Vitals** — Capture LCP, CLS, and INP on every major page via `web-vitals` or PerformanceObserver. Thresholds: LCP < 2.5s, CLS < 0.1, INP < 200ms. Log values even if passing.
+12. **API response times** — Intercept every API call during user flow tests (`page.on('response')`). Flag any endpoint over 1s. Record p50 and p95 for each endpoint.
+13. **Console errors** — Capture all `console.error` and `console.warn` output during every test (`page.on('console')`). Zero console errors is the target. Warnings are logged but non-blocking.
+14. **Accessibility score** — Run axe-core on every page and record the violation count per page. Target: zero violations. Track count across passes to confirm it trends to zero.
+15. **Network payload** — Measure total transfer size per page load using `page.on('response')`. Flag any page over 2MB total transfer. Record per-page totals.
 
 ### Agent Teams Workflow
 
@@ -1534,8 +1548,9 @@ Pass 5: [0 issues — clean pass 3/3] ✅ EXIT
 
 ### Gate — `🧑 Human`
 
-- [ ] QA Tester has made 3 consecutive clean Playwright passes with zero issues.
+- [ ] QA Tester has made 3 consecutive clean Playwright passes with zero qualitative or quantitative issues.
 - [ ] All issues found during the loop are resolved and closed.
+- [ ] Quantitative metrics recorded and thresholds met: LCP < 2.5s, CLS < 0.1, INP < 200ms, zero console errors, zero axe-core violations, no page over 2MB transfer, no API endpoint over 1s.
 - [ ] Full test suite passes.
 - [ ] Production Docker build verified after all fixes.
 

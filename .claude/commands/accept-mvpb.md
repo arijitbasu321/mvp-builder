@@ -78,6 +78,8 @@ The same Agent Teams rules from Phase 4 apply here. You are the orchestrator —
 
 Each pass covers ALL of the following — hand this list to the QA Tester teammate:
 
+**Qualitative (does it work correctly?):**
+
 1. **Navigation completeness** — Click every link, button, nav item, and interactive element. Flag dead links, buttons without handlers, 404 pages.
 2. **Form testing** — Every form with: valid input, empty submission, max-length input, special characters, rapid repeated submission.
 3. **User flow testing** — Walk through every user story from the product spec end-to-end, including edge cases and alternative paths.
@@ -87,6 +89,15 @@ Each pass covers ALL of the following — hand this list to the QA Tester teamma
 7. **Responsive testing** — Playwright screenshots at 375px, 768px, 1280px. Flag layout breaks.
 8. **Accessibility testing** — axe-core scan on every page. Keyboard-only navigation through all core workflows. Focus management on modals/dialogs. Visible focus indicators.
 9. **Loading and empty states** — Verify loading indicators exist. Verify empty states have appropriate messaging.
+
+**Quantitative (does it meet measurable thresholds?):**
+
+10. **Page load performance** — Measure time-to-interactive for every major page using Playwright's `performance.timing` API. Flag any page over 3s on simulated 4G (`page.emulateNetworkConditions`). Record actual values.
+11. **Core Web Vitals** — Capture LCP, CLS, and INP on every major page via `web-vitals` or PerformanceObserver. Thresholds: LCP < 2.5s, CLS < 0.1, INP < 200ms. Log values even if passing.
+12. **API response times** — Intercept every API call during user flow tests (`page.on('response')`). Flag any endpoint over 1s. Record p50 and p95 for each endpoint.
+13. **Console errors** — Capture all `console.error` and `console.warn` output during every test (`page.on('console')`). Zero console errors is the target. Warnings are logged but non-blocking.
+14. **Accessibility score** — Run axe-core on every page and record the violation count per page. Target: zero violations. Track count across passes to confirm it trends to zero.
+15. **Network payload** — Measure total transfer size per page load using `page.on('response')`. Flag any page over 2MB total transfer. Record per-page totals.
 
 ## Tracking
 
@@ -108,8 +119,9 @@ Pass 5: [0 issues — clean pass 3/3] ✅ EXIT
 
 Present the acceptance results to the human:
 
-- [ ] QA Tester has made 3 consecutive clean Playwright passes with zero issues.
+- [ ] QA Tester has made 3 consecutive clean Playwright passes with zero qualitative or quantitative issues.
 - [ ] All issues found during the loop are resolved and closed.
+- [ ] Quantitative metrics recorded and thresholds met: LCP < 2.5s, CLS < 0.1, INP < 200ms, zero console errors, zero axe-core violations, no page over 2MB transfer, no API endpoint over 1s.
 - [ ] Full test suite passes.
 - [ ] Production Docker build verified after all fixes.
 

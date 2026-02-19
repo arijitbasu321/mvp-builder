@@ -22,6 +22,7 @@ $ARGUMENTS
 
 **Round 3 — AI & infra:**
 - "AI model per tier?" (header: "AI Tiers") — The human chose a production provider/model and a dev provider/model in Phase 0. Confirm those choices, then ask: "Should Tier 2/3 features (suggestions, chatbot) use a lighter/cheaper model than Tier 1 (core business logic)?" Options: "Same model for all tiers (Recommended for MVP)", "Lighter model for Tier 2/3 (specify)". If they choose a different model for Tier 2/3, collect the model name. Document the per-tier model selection in ARCHITECTURE.md's AI Architecture section. Ensure `AI_MODEL` (production), `AI_MODEL_DEV` (dev), and optionally `AI_MODEL_TIER2` are in `.env.example`.
+- "AI response caching strategy?" (header: "AI Cache") — Options: "Cache static/repeated queries with TTL (Recommended)", "No caching — all queries are user-specific and non-deterministic", "Defer to post-MVP". Document the decision in ARCHITECTURE.md's AI Architecture section under AI Response Caching. If caching is chosen, the Architect must define cacheable query types and TTL per use case during Step 2.
 - "Hosting platform?" (header: "Hosting") — Options: "Vercel (Recommended)", "Railway", "AWS", "Fly.io"
 
 **Round 4 — Services (only ask if relevant to the product):**
@@ -123,6 +124,7 @@ Present architecture to the human. The gate requires:
 - [ ] `docs/ARCHITECTURE.md` is complete with data model, API design, AI architecture, and all sections.
 - [ ] `README.md` is complete.
 - [ ] Human has approved tech stack, data model, API design, and AI architecture.
+- [ ] AI Response Caching strategy is documented in ARCHITECTURE.md (either a caching plan with TTLs, or an explicit "not applicable" with reasoning).
 - [ ] MCP servers proposed, approved/denied, configured (or fallbacks documented).
 - [ ] Skills searched for every tech stack keyword (Tier 1 → Tier 2), security vetted, approved/denied, installed to `.claude/skills/`.
 
