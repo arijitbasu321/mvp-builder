@@ -1,6 +1,29 @@
-# App Builder Playbook
+# MVP Builder
 
 A structured playbook for building production-ready, AI-powered applications using Claude Code's Agent Teams. You provide the idea. The PM builds the product.
+
+> **Idea → Spec → Architecture → Code → Ship.**
+
+---
+
+## What Is MVP Builder?
+
+MVP Builder gives Claude Code a structured framework for acting as a full product team — not just a code generator. Instead of a single agent guessing at requirements and making unchecked decisions, it organizes work across six specialized roles: **PM, Architect, Developer, QA, Security, and DevOps**.
+
+You talk to the PM. The PM runs the team. You sign off at key gates. Your app gets built.
+
+This approach directly addresses the most common failure modes of unstructured AI coding:
+
+| Failure Mode | How MVP Builder Addresses It |
+|---|---|
+| Specification drift | Written spec with iterative human review |
+| Context rot | Fresh agent contexts per task (Agent Teams) |
+| Security blindness | Dedicated Security role with override authority |
+| Decision creep | Explicit autonomy boundaries and human gates |
+| Knowledge loss | Persistent `LEARNINGS.md` and `DECISIONS.md` files |
+| Hallucination | Anti-hallucination rules and verify-before-assert discipline |
+
+---
 
 ## Prerequisites
 
@@ -8,6 +31,8 @@ A structured playbook for building production-ready, AI-powered applications usi
 - GitHub repo and project board created
 - Your project idea, target users, and production domain
 - AI API key (OpenAI, Anthropic, xAI, Google, or other provider)
+
+---
 
 ## Setup
 
@@ -34,6 +59,8 @@ cd mvp-builder
 
 This copies the slash commands, settings, and playbook into your project. After setup, you work entirely from your project repo.
 
+---
+
 ## Quick Start
 
 ```bash
@@ -41,13 +68,15 @@ cd /path/to/your-project
 claude --dangerously-skip-permissions
 ```
 
-Then:
+Then run:
 
 ```
 /start-mvpb
 ```
 
 The PM takes over from there — it will ask for your project name, idea, target users, AI provider, and hosting preferences interactively.
+
+---
 
 ## Commands
 
@@ -92,6 +121,25 @@ The playbook is broken into slash commands — one per phase, plus utilities. Ea
 /iterate-mvpb   → post-MVP improvements
 ```
 
+---
+
+## Agent Roles
+
+The team operates with six specialized roles. Each role maintains a distinct perspective and area of authority:
+
+| Role | Responsibility |
+|------|----------------|
+| **PM** | Orchestrator and only human-facing role. Owns the spec, plan, and delegation. Does not write code. |
+| **Architect** | Owns technical design — tech stack, data model, API contracts. Reviews all code for architectural consistency. |
+| **Developer** | Writes application code and tests, within the architecture defined by the Architect. |
+| **QA** | Writes end-to-end tests, validates acceptance criteria, and approaches the product from the user's perspective. |
+| **Security** | Reviews all code for vulnerabilities. Has default override authority over the Developer in disputes. |
+| **DevOps** | Owns infrastructure: CI/CD, deployment scripts, environment configuration, monitoring. |
+
+> **Security Override Principle:** In disputes between Developer and Security, Security wins by default — unless the human explicitly overrides. This creates a structural bias toward safe defaults rather than shipping speed.
+
+---
+
 ## Your Job During the Build
 
 You have 6 human gates where the PM will stop and wait for your sign-off:
@@ -107,11 +155,13 @@ You have 6 human gates where the PM will stop and wait for your sign-off:
 
 During Phase 4 (Development), each milestone also requires your sign-off before the next one begins. Between gates: provide API keys when requested, make decisions when escalated, otherwise stay out of the way.
 
-**Context monitoring**: The PM cannot measure its own context utilization. At every checkpoint (milestone, phase gate, verification wave), it will remind you to check context usage via the Claude Code UI status bar or `/cost`. If utilization exceeds 60%, restart the session and run `/resume-mvpb` — no work is lost because all state is in files.
+**Context monitoring:** The PM cannot measure its own context utilization. At every checkpoint (milestone, phase gate, verification wave), it will remind you to check context usage via the Claude Code UI status bar or `/cost`. If utilization exceeds 60%, restart the session and run `/resume-mvpb` — no work is lost because all state is in files.
+
+---
 
 ## How It Works
 
-The playbook defines 6 roles (PM, Architect, Developer, QA, Security, DevOps) that operate as an autonomous team:
+The playbook supports three execution modes:
 
 | Mode | How It Works | Best For |
 |------|-------------|----------|
@@ -119,18 +169,42 @@ The playbook defines 6 roles (PM, Architect, Developer, QA, Security, DevOps) th
 | **Task tool** (fallback) | PM spawns sub-agents programmatically within one session | Simpler, still automated |
 | **Manual sessions** (last resort) | Fresh `claude` session per task, PM manages state via files | When other modes unavailable |
 
+### Key Concepts
+
+```
+Phase (8 total)
+└── Gate — human or PM sign-off before next phase
+    └── Milestone — versioned deliverable (v0.1, v0.2, …)
+        └── Truth Condition — observable behavior that must hold
+            └── Wave — batch of independent, parallel tasks
+                └── Task — one atomic unit of work for one teammate
+```
+
+---
+
 ## Key Files
 
 | File | Purpose |
 |------|---------|
 | `APP_BUILDER_PLAYBOOK_3.md` | The full playbook reference |
+| `WHITEPAPER.md` | Framework principles and design rationale |
 | `.claude/commands/*.md` | Slash commands (this is what you actually use) |
+| `setup.sh` | Bootstrap script to install the toolkit into your project |
 | `CLAUDE.md` | Generated in Phase 2 — agent reads this every session |
 | `.planning/STATE.md` | Current progress, waves, truth conditions |
 | `.planning/DECISIONS.md` | Settled decisions — prevents relitigating |
 | `.planning/LEARNINGS.md` | Team knowledge that accumulates across tasks |
 | `.planning/LEARNINGS_ARCHIVE.md` | Archived learnings from older milestones |
 
+---
+
+## Further Reading
+
+- **[WHITEPAPER.md](./WHITEPAPER.md)** — An in-depth look at the problems this framework solves, the multi-agent team model, and the design principles behind each practice.
+- **[APP_BUILDER_PLAYBOOK_3.md](./APP_BUILDER_PLAYBOOK_3.md)** — The complete playbook with all phase definitions, gate checklists, and agent protocols.
+
+---
+
 ## License
 
-[Your license here]
+MIT
