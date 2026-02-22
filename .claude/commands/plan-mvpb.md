@@ -29,9 +29,11 @@ v0.2 Truth Conditions:
 - [ ] A logged-in user can trigger the core AI workflow and receive a valid result.
 - [ ] If the AI API is down, the user sees a graceful fallback (not a crash).
 - [ ] The AI service layer logs the API call with token count and latency.
-- [ ] Tier 1 AI prompts have ≥5 eval test cases that pass.
+- [ ] Golden datasets exist for all Tier 1 AI prompts (≥5 eval cases each) and all eval tests pass baseline.
 - [ ] All truth conditions can be verified by running the test suite.
 ```
+
+**Mandatory rule for milestones that introduce or modify AI prompts:** The truth conditions MUST include a golden dataset eval condition — "Golden datasets exist for all Tier 1 AI prompts in this milestone (≥5 eval cases each, stored in `prompts/evals/`) and all eval tests pass baseline." This is not optional. If this truth condition is missing, the milestone plan is incomplete. This prevents the eval framework from being silently deferred — if the golden dataset doesn't exist, the truth condition fails, and the milestone is blocked.
 
 ## Step 2: Create GitHub Issues (Atomic Sizing)
 
@@ -51,9 +53,9 @@ Log EVERY requirement as a GitHub issue with: title, labels, milestone, acceptan
 
 ## Step 3: Wave Planning
 
-For each milestone, organize issues into **waves**:
+For each milestone, organize issues into **waves**. **Spawn an Architect teammate to advise on wave composition** — the Architect knows the codebase structure and can assess which tasks are truly independent, which files each task will touch, and what the merge-conflict risk is. Give the Architect the task list and ARCHITECTURE.md; the Architect returns a dependency graph, file-touch map, and overlap risk assessment.
 
-1. Analyze dependencies — which tasks are independent? Which depend on others?
+1. **Using the Architect's assessment**, analyze dependencies — which tasks are independent? Which depend on others?
 2. Group into waves — independent tasks in the same wave, dependent tasks in later waves.
 3. **Same-file overlap is risk-assessed** (worktree isolation prevents filesystem conflicts, but merge conflicts may still occur):
    - **Low risk** (independent additions — e.g., two new files in the same directory): OK in the same wave.
