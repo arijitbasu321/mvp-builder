@@ -1,209 +1,159 @@
-# MVP Builder
+# App Builder
 
-A structured playbook for building production-ready, AI-powered applications using Claude Code's Agent Teams. You provide the idea. The PM builds the product.
-
-> **Idea → Spec → Architecture → Code → Ship.**
-
----
-
-## What Is MVP Builder?
-
-MVP Builder gives Claude Code a structured framework for acting as a full product team — not just a code generator. Instead of a single agent guessing at requirements and making unchecked decisions, it organizes work across six specialized roles: **PM, Architect, Developer, QA, Security, and DevOps**.
-
-You talk to the PM. The PM runs the team. You sign off at key gates. Your app gets built.
-
-This approach directly addresses the most common failure modes of unstructured AI coding:
-
-| Failure Mode | How MVP Builder Addresses It |
-|---|---|
-| Specification drift | Written spec with iterative human review |
-| Context rot | Fresh agent contexts per task (Agent Teams) |
-| Security blindness | Dedicated Security role with override authority |
-| Decision creep | Explicit autonomy boundaries and human gates |
-| Knowledge loss | Persistent `LEARNINGS.md` and `DECISIONS.md` files |
-| Hallucination | Anti-hallucination rules and verify-before-assert discipline |
-
----
+A framework for building production-ready applications using Claude Code. Instead of a monolithic playbook with instructions agents ignore, this framework uses **decoupled phases**, **human gatekeeping**, and **hooks that mechanically enforce rules**. You provide the requirements. Two AI Product Managers handle specification and development.
 
 ## Prerequisites
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
-- GitHub repo and project board created
-- Your project idea, target users, and production domain
-- AI API key (OpenAI, Anthropic, xAI, Google, or other provider)
+- Git repository for your project
+- Agent Teams enabled in Claude Code settings
 
----
+## Three Phases
 
-## Setup
+| Phase | Who | What Happens |
+|-------|-----|-------------|
+| **Requirement** | Human | You write user stories in REQUIREMENTS.md |
+| **Specification** (Phase I) | AI — Product Manager | Converts requirements into spec, milestones, and a development playbook |
+| **Development** (Phase II) | AI — Project Manager | Builds the product milestone by milestone using Agent Teams |
 
-1. Enable Agent Teams in your Claude Code settings:
-
-```json
-{
-  "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": 1
-}
-```
-
-2. Clone this repo and run `setup.sh` to bootstrap your project:
-
-```bash
-git clone https://github.com/arijitbasu321/mvp-builder.git
-cd mvp-builder
-
-# Basic — copy toolkit into your project repo
-./setup.sh /path/to/your-project
-
-# With pre-existing user stories/epics file
-./setup.sh /path/to/your-project epics.md
-```
-
-This copies the slash commands, settings, and playbook into your project. After setup, you work entirely from your project repo.
-
----
+The human is the gatekeeper between phases. Nothing advances without your review and approval.
 
 ## Quick Start
 
 ```bash
+# Clone this repo
+git clone <repo-url>
+cd builder
+
+# Set up your project
+./setup.sh /path/to/your-project
+
+# Write your requirements
+vi /path/to/your-project/REQUIREMENTS.md
+
+# Fill in project details (deployment platform, domain, AI provider, constraints)
+vi /path/to/your-project/templates/PRODUCT-MANAGER-PLAYBOOK.md
+
+# Start Phase I — the Product Manager reads your requirements and produces specs
 cd /path/to/your-project
-claude --dangerously-skip-permissions
+claude
 ```
 
-Then run:
+## Phase Transition (I → II)
 
-```
-/start-mvpb
-```
+After the Product Manager completes Phase I and you've reviewed the output:
 
-The PM takes over from there — it will ask for your project name, idea, target users, AI provider, and hosting preferences interactively.
+```bash
+cd /path/to/your-project
 
----
+# Swap the playbook symlink
+ln -sf PROJECT-MANAGER-PLAYBOOK.md CLAUDE.md
 
-## Commands
+# Install Project Manager hooks
+cp hooks/project-manager/settings.json .claude/settings.json
 
-The playbook is broken into slash commands — one per phase, plus utilities. Each command gives Claude exactly the context it needs for that phase.
-
-### Phase Commands
-
-| Command | Phase | What It Does |
-|---------|-------|-------------|
-| `/start-mvpb` | 0 — Init | Collects inputs, scaffolds repo, creates project board |
-| `/spec-mvpb` | 1 — Spec | Writes the product specification through iterative dialogue |
-| `/architect-mvpb` | 2 — Architecture | Designs tech stack, data model, API, AI architecture |
-| `/plan-mvpb` | 3 — Planning | Breaks requirements into milestones, issues, waves |
-| `/build-mvpb` | 4 — Development | Builds the app milestone by milestone |
-| `/harden-mvpb` | 5 — Hardening | Security audit, quality review, bug fixes |
-| `/sweep-mvpb` | 6 — Code Sweep | Architect + Developer full codebase review for bugs |
-| `/deploy-mvpb` | 7 — Deployment | Production deployment, monitoring, demo script |
-| `/iterate-mvpb` | 8 — Iteration | Post-MVP improvements and backlog |
-
-### Utility Commands
-
-| Command | What It Does |
-|---------|-------------|
-| `/status-mvpb` | Quick status report — current phase, milestone, wave, blockers |
-| `/resume-mvpb` | Reloads all state files and picks up where the last session left off |
-| `/pivot-mvpb` | Invokes the recovery protocol when something fundamental breaks |
-| `/help-mvpb` | Overview of all commands, phases, and gates |
-
-### Typical Flow
-
-```
-/start-mvpb     → scaffolds everything, asks for inputs
-/spec-mvpb      → iterative spec writing with human review
-/architect-mvpb → tech stack, data model, API design, AI architecture
-/plan-mvpb      → milestones, issues, wave plans
-/build-mvpb     → development loop (run this repeatedly — it reads STATE.md each time)
-/status-mvpb    → check progress anytime
-/resume-mvpb    → after a break or context reset
-/harden-mvpb    → security audit after all milestones complete
-/sweep-mvpb     → architect + developer full codebase review
-/deploy-mvpb    → production deployment and launch
-/iterate-mvpb   → post-MVP improvements
+# Start Phase II
+claude
 ```
 
----
+## Directory Structure
 
-## Agent Roles
-
-The team operates with six specialized roles. Each role maintains a distinct perspective and area of authority:
-
-| Role | Responsibility |
-|------|----------------|
-| **PM** | Orchestrator and only human-facing role. Owns the spec, plan, and delegation. Does not write code. |
-| **Architect** | Owns technical design — tech stack, data model, API contracts. Reviews all code for architectural consistency. |
-| **Developer** | Writes application code and tests, within the architecture defined by the Architect. |
-| **QA** | Writes end-to-end tests, validates acceptance criteria, and approaches the product from the user's perspective. |
-| **Security** | Reviews all code for vulnerabilities. Has default override authority over the Developer in disputes. |
-| **DevOps** | Owns infrastructure: CI/CD, deployment scripts, environment configuration, monitoring. |
-
-> **Security Override Principle:** In disputes between Developer and Security, Security wins by default — unless the human explicitly overrides. This creates a structural bias toward safe defaults rather than shipping speed.
-
----
-
-## Your Job During the Build
-
-You have 6 human gates where the PM will stop and wait for your sign-off:
-
-| Gate | Phase | What You're Approving |
-|------|-------|-----------------------|
-| 1 | Product Spec | What the product does |
-| 2 | Architecture | How it's built |
-| 3 | Task Plan | The build order |
-| 4 | Hardening | Security audit and quality review |
-| 5 | Code Sweep | Builders' final review — bugs, integration seams, drift |
-| 6 | Deployment | Production launch readiness |
-
-During Phase 4 (Development), each milestone also requires your sign-off before the next one begins. Between gates: provide API keys when requested, make decisions when escalated, otherwise stay out of the way.
-
-**Context monitoring:** The PM cannot measure its own context utilization. At every checkpoint (milestone, phase gate, verification wave), it will remind you to check context usage via the Claude Code UI status bar or `/cost`. If utilization exceeds 60%, restart the session and run `/resume-mvpb` — no work is lost because all state is in files.
-
----
-
-## How It Works
-
-The playbook supports three execution modes:
-
-| Mode | How It Works | Best For |
-|------|-------------|----------|
-| **Agent Teams** (preferred) | Native Claude Code feature — PM spawns teammates with independent context windows | Full parallel execution |
-| **Task tool** (fallback) | PM spawns sub-agents programmatically within one session | Simpler, still automated |
-| **Manual sessions** (last resort) | Fresh `claude` session per task, PM manages state via files | When other modes unavailable |
-
-### Key Concepts
+After running `setup.sh`, your project will have:
 
 ```
-Phase (8 total)
-└── Gate — human or PM sign-off before next phase
-    └── Milestone — versioned deliverable (v0.1, v0.2, …)
-        └── Truth Condition — observable behavior that must hold
-            └── Wave — batch of independent, parallel tasks
-                └── Task — one atomic unit of work for one teammate
+your-project/
+├── CLAUDE.md                              → templates/PRODUCT-MANAGER-PLAYBOOK.md (symlink)
+├── REQUIREMENTS.md                        # Your user stories (human-authored)
+├── templates/
+│   ├── SPEC-TEMPLATE.md                   # Structure for the spec document
+│   ├── MILESTONE-TEMPLATE.md              # Structure for per-milestone specs
+│   ├── PRODUCT-MANAGER-PLAYBOOK.md        # Phase I instructions
+│   └── PROJECT-MANAGER-PLAYBOOK.md        # Phase II instructions (template)
+├── hooks/
+│   ├── product-manager/
+│   │   ├── settings.json                  # Phase I hook config
+│   │   └── scripts/
+│   │       ├── block-requirements-edit.sh # Prevents AI from modifying REQUIREMENTS.md
+│   │       └── validate-spec-structure.sh # Ensures SPEC.md has all required sections
+│   └── project-manager/
+│       ├── settings.json                  # Phase II hook config
+│       ├── project-config.sh              # Test commands, coverage thresholds (fill per project)
+│       └── scripts/
+│           ├── enforce-team-worktrees.sh  # Blocks bare sub-agents (must use Agent Teams)
+│           ├── enforce-issues-writer.sh   # Only PM can write ISSUES.md
+│           ├── enforce-state-size.sh      # STATE.md stays under 50 lines
+│           ├── enforce-test-coverage.sh   # Checks test coverage meets threshold
+│           └── enforce-decisions-append.sh # DECISIONS.md is append-only
+└── .claude/
+    └── settings.json                      # Active hook config (swapped between phases)
 ```
 
----
+Files created during execution:
 
-## Key Files
+```
+your-project/
+├── SPEC.md                                # Product specification (Phase I output)
+├── PROJECT-MANAGER-PLAYBOOK.md            # Filled development playbook (Phase I output)
+├── HOOK-RECOMMENDATIONS.md                # Suggested hook changes (Phase I output)
+├── milestones/
+│   ├── M1-SPEC.md                         # Per-milestone specs (Phase I output)
+│   ├── M2-SPEC.md
+│   └── ...
+├── DESIGN-M{N}.md                         # Architect's design per milestone (Phase II)
+├── STATE.md                               # Current progress (Phase II)
+├── DECISIONS.md                           # Decision log — append-only (Phase II)
+├── LEARNINGS.md                           # Active learnings (Phase II)
+├── LEARNINGS-archive.md                   # Archived learnings (Phase II)
+└── ISSUES.md                              # Issue tracker — PM-only (Phase II)
+```
 
-| File | Purpose |
-|------|---------|
-| `APP_BUILDER_PLAYBOOK_3.md` | The full playbook reference |
-| `WHITEPAPER.md` | Framework principles and design rationale |
-| `.claude/commands/*.md` | Slash commands (this is what you actually use) |
-| `setup.sh` | Bootstrap script to install the toolkit into your project |
-| `CLAUDE.md` | Generated in Phase 2 — agent reads this every session |
-| `.planning/STATE.md` | Current progress, waves, truth conditions |
-| `.planning/DECISIONS.md` | Settled decisions — prevents relitigating |
-| `.planning/LEARNINGS.md` | Team knowledge that accumulates across tasks |
-| `.planning/LEARNINGS_ARCHIVE.md` | Archived learnings from older milestones |
+## Hook Configuration
 
----
+Hooks enforce rules mechanically — agents cannot bypass them.
 
-## Further Reading
+### Phase I Hooks (Product Manager)
 
-- **[WHITEPAPER.md](./WHITEPAPER.md)** — An in-depth look at the problems this framework solves, the multi-agent team model, and the design principles behind each practice.
-- **[APP_BUILDER_PLAYBOOK_3.md](./APP_BUILDER_PLAYBOOK_3.md)** — The complete playbook with all phase definitions, gate checklists, and agent protocols.
+| Hook | Trigger | What It Does |
+|------|---------|-------------|
+| block-requirements-edit | PreToolUse on Edit/Write | Prevents modification of REQUIREMENTS.md |
+| validate-spec-structure | PostToolUse on Write | Ensures SPEC.md contains all required sections |
 
----
+### Phase II Hooks (Project Manager)
+
+| Hook | Trigger | What It Does |
+|------|---------|-------------|
+| enforce-team-worktrees | PreToolUse on Task | Blocks Task calls without team_name (no bare sub-agents) |
+| enforce-issues-writer | PreToolUse on Edit/Write | Blocks teammates from writing to ISSUES.md |
+| enforce-state-size | PostToolUse on Write/Edit | Blocks STATE.md from exceeding 50 lines |
+| enforce-decisions-append | PreToolUse on Edit | Blocks edits that remove content from DECISIONS.md |
+
+### Customizing Hooks
+
+Edit `hooks/project-manager/project-config.sh` to set project-specific values:
+
+```bash
+export TEST_CMD="npm test -- --coverage"    # Your test command
+export COVERAGE_THRESHOLD=80                 # Minimum coverage %
+export PLAYWRIGHT_TEST_DIR="tests/e2e"       # E2E test directory
+```
+
+## What Hooks Cannot Enforce
+
+Some rules require judgment and must rely on playbook instructions:
+
+- Parallel teammate dispatch (no hook for sequential vs parallel spawning)
+- Compressed report format (SendMessage content is not hookable)
+- Review quality (requires understanding, not pattern matching)
+- Wave plan correctness (requires understanding feature dependencies)
+
+## Your Role
+
+| When | What You Do |
+|------|------------|
+| Before Phase I | Write REQUIREMENTS.md, fill playbook placeholders |
+| During Phase I | Answer Product Manager questions, review spec output |
+| Between phases | Review all Phase I output, swap symlink, install hooks |
+| During Phase II | Test at milestone gates, provide API keys, unblock escalations |
 
 ## License
 
