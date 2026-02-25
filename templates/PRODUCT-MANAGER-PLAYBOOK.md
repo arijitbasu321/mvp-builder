@@ -46,7 +46,7 @@ Execute these steps in order. Do not skip steps.
 1. Based on requirements, propose a tech stack.
 2. Present choices to the human via `AskUserQuestion` — one question per layer (frontend, backend, database, auth, etc.).
 3. Justify each recommendation in the option description.
-4. Evaluate whether the default 7-role team fits this product. If you believe a role should be added or removed, present the change to the human via `AskUserQuestion` with justification. Do not decide yourself.
+4. Evaluate whether the default 9-role team fits this product. If you believe a role should be added or removed, present the change to the human via `AskUserQuestion` with justification. Do not decide yourself.
 5. Record all decisions. These go into SPEC.md's Tech Stack and Agent Team Structure sections.
 
 ### Step 3: Create SPEC.md

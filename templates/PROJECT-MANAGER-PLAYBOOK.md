@@ -36,10 +36,11 @@ On every session start (fresh or resume), read files in this exact order:
 6. **DESIGN.md** — overall project design (architecture + UI/UX)
 7. **Current milestone spec** — `milestones/M{N}-SPEC.md` for the current milestone
 8. **Current milestone design** — `DESIGN-M{N}.md` — skip only if the current milestone has not yet reached the design compilation step
+9. **WAVE-STATE.md** — intra-wave progress (if it exists, you are mid-wave — resume from where it says you are)
 
 If STATE.md does not exist, you are starting from scratch. Begin with the Upfront Design phase, then proceed to Milestone 1.
 
-On session resume: follow this protocol. Do NOT re-read completed milestone specs or designs — only the current one. Do NOT re-run completed waves — resume from where STATE.md says you are.
+On session resume: follow this protocol. Do NOT re-read completed milestone specs or designs — only the current one. Do NOT re-run completed waves. If WAVE-STATE.md exists, resume the current wave from the sub-step indicated.
 
 ---
 
@@ -102,6 +103,30 @@ Format:
 
 Prune at milestone boundaries: move entries that no longer affect future work to `LEARNINGS-archive.md`.
 
+### WAVE-STATE.md — Intra-Wave Progress (reset per wave)
+
+Tracks progress within the current wave. Reset at the start of each new wave. This file allows session resume mid-wave without re-running completed sub-steps. Not subject to the 50-line limit.
+
+Format:
+```
+# Wave State — M{N} Wave {W}
+
+## Developers
+- dev-1: [task summary] — [spawned | done | blocked]
+- dev-2: [task summary] — [spawned | done | blocked]
+
+## Merge
+- dev-1: [merged | conflict | pending]
+- dev-2: [merged | conflict | pending]
+
+## Wave Reviews
+- [not-started | in-progress | done]
+- Issues found: [count or "none"]
+
+## Fix Loop
+- Round: [N] or "N/A"
+```
+
 ### DESIGN.md — Overall Project Design
 
 Created during the Upfront Design phase. Contains the combined output from the UI/UX Designer (design system, wireframes, layout patterns) and the Architect (system architecture, data models, API contracts). This is the persistent reference for all milestones.
@@ -122,9 +147,11 @@ When spawning teammates, pass them the context package for their role. Do not im
 | CONTEXT-ARCHITECT | SPEC.md, all milestone specs, DESIGN.md, DECISIONS.md, LEARNINGS.md, **plus** any design output from the current step's UI/UX Designer |
 | CONTEXT-DEVELOPER | SPEC.md, current milestone spec (`milestones/M{N}-SPEC.md`), DESIGN-M{N}.md, DECISIONS.md, LEARNINGS.md |
 | CONTEXT-REVIEWER | Diff of changes being reviewed, SPEC.md, DESIGN-M{N}.md |
-| CONTEXT-QA | SPEC.md, current milestone spec, DESIGN-M{N}.md |
+| CONTEXT-REVIEWER-MILESTONE | Diff of entire milestone's changes, SPEC.md, DESIGN.md, DESIGN-M{N}.md, DECISIONS.md, LEARNINGS.md |
+| CONTEXT-QA | SPEC.md, current milestone spec, DESIGN-M{N}.md, milestone evaluation conditions |
+| CONTEXT-DEVOPS | SPEC.md (Deployment Strategy section), DESIGN.md, DESIGN-M{N}.md, DECISIONS.md, STATE.md |
 
-For per-milestone design steps, scope CONTEXT-DESIGNER to the current milestone spec instead of all milestone specs.
+For per-milestone design steps, scope CONTEXT-DESIGNER to the current milestone spec instead of all milestone specs. Omit files that don't exist yet (e.g., DESIGN.md during upfront design Step 1).
 
 ---
 
@@ -150,10 +177,12 @@ No code snippets. No explanations of approach. No stack traces. If you need deta
 This procedure is referenced by multiple steps. When a step says "enter the Fix Loop," follow this:
 
 1. Collect all issues from the triggering step (QA failures, review findings, eval condition failures).
-2. Spawn developer teammates to fix issues (following the developer management rules in Step 5).
-3. Re-run the checks that found the issues (QA tests, reviews, or eval conditions — whichever triggered this loop).
-4. Repeat until a round produces zero new issues.
-5. **If 10 rounds pass without convergence** — stop and escalate to the human via `AskUserQuestion`. List the remaining issues and ask for direction.
+2. Before spawning fix agents, record each issue in LEARNINGS.md with what failed and why. Include any prior fix attempts for recurring issues.
+3. Spawn developer teammates to fix issues (following the developer management rules in Step 5). Each fix agent receives: the issue description, any prior fix attempts from LEARNINGS.md, and CONTEXT-DEVELOPER.
+4. Re-run the checks that found the issues (QA tests, reviews, or eval conditions — whichever triggered this loop).
+5. Repeat until a round produces zero new issues.
+6. **Early exit**: If the same issue reappears in round N that was fixed in round N-2 or earlier, the fixes are oscillating. Escalate immediately — do not wait for round 10.
+7. **If 10 rounds pass without convergence** — stop and escalate to the human via `AskUserQuestion`. List the remaining issues, the fix history, and the oscillation pattern (if any).
 
 ---
 
@@ -214,8 +243,9 @@ Execute these steps for each milestone. Do not skip steps.
 1. Read the milestone spec's Features list and the milestone design.
 2. Group features into waves. Each wave is a batch of related tasks that complete a feature or logical unit.
 3. Tasks within a wave MUST be parallelizable — no task may depend on another task in the same wave. Target 2-5 tasks per wave, max 5.
-4. Write the wave plan into the milestone spec's Wave Plan section.
-5. Update STATE.md with the wave count.
+4. **Identify shared files** (package.json, config files, layout files, shared types, route configs) that multiple tasks would modify. Either: (a) sequence those tasks across different waves, or (b) create a single "foundation" task in an earlier wave that makes the shared-file changes, then parallel tasks in the next wave build on top.
+5. Write the wave plan into the milestone spec's Wave Plan section.
+6. Update STATE.md with the wave count.
 
 ### Step 5: Execute Waves
 
@@ -228,7 +258,7 @@ Execute these steps for each milestone. Do not skip steps.
 
 **For each wave, execute these sub-steps in order:**
 
-**5a. Update STATE.md** with the current wave number.
+**5a. Initialize wave.** Update STATE.md with the current wave number. Create (or reset) WAVE-STATE.md for this wave.
 
 **5b. Spawn developers.**
 1. Create the team: `TeamCreate` for this wave.
@@ -237,37 +267,40 @@ Execute these steps for each milestone. Do not skip steps.
 4. Developers work in isolated git worktrees automatically.
 5. Developers build features and write unit tests. They do NOT run the full test suite.
 6. Developers report back using the Compressed Reporting Format. Reject verbose reports.
+7. Update WAVE-STATE.md as each developer reports back.
 
 **5c. Merge results.**
 1. Check that each developer's status is "done" with no blockers.
 2. Merge each developer's worktree branch into the main branch.
 3. If merge conflicts arise, spawn the Architect to resolve them.
+4. Update WAVE-STATE.md with merge status for each developer.
 
 **5d. Wave-Level Reviews.**
-Spawn four reviewers simultaneously: Code Reviewer, Security Reviewer, UI/UX Reviewer, Proofreader. Each receives CONTEXT-REVIEWER (diff = this wave's changes). Each produces a list of issues or "no issues." If issues found, enter the Fix Loop targeting those issues. Reviewers must report using the Compressed Reporting Format.
+Spawn four reviewers simultaneously: Code Reviewer, Security Reviewer, UI/UX Reviewer, Proofreader. Each receives CONTEXT-REVIEWER (diff = this wave's changes). Each produces a list of issues or "no issues." If issues found, enter the Fix Loop targeting those issues. **Do not proceed to the next wave until the Fix Loop resolves all issues from this wave's reviews.** Reviewers must report using the Compressed Reporting Format. Update WAVE-STATE.md with review status.
 
-**After all waves complete**, update STATE.md status to "review" and proceed to Step 6.
+**After all waves complete**, delete WAVE-STATE.md, update STATE.md status to "review", and proceed to Step 6.
 
 ### Step 6: Deploy to Non-Prod
 
-1. Spawn DevOps to deploy the current state to non-prod / staging.
+1. Spawn DevOps as a teammate. Pass them CONTEXT-DEVOPS. Deploy the current state to non-prod / staging.
 2. Verify the deployment works.
 3. If deployment fails, spawn DevOps to diagnose and fix. If the fix requires code changes, spawn a developer. Re-deploy and verify before proceeding.
 
 ### Step 7: QA Testing
 
-1. Spawn the QA Tester as a teammate. Pass them CONTEXT-QA.
-2. QA runs the full test suite:
+1. Spawn the QA Tester as a teammate. Pass them CONTEXT-QA (which includes the milestone's evaluation conditions).
+2. **QA must write tests that trace back to evaluation conditions.** Every evaluation condition in the milestone spec must have at least one corresponding test. Tests that only check trivial assertions (page loads, element exists) are insufficient — tests must validate actual user flows and business logic.
+3. QA runs the full test suite:
    - **Unit tests** — all must pass
-   - **E2E tests with Playwright** — validates user flows
+   - **E2E tests with Playwright** — validates user flows end-to-end, not just page loads
    - **Prompt testing against Golden Dataset with LLM-as-a-Judge** — if the milestone has AI features, QA tests all prompts against the Golden Dataset created by the Architect, using an LLM to judge response quality
-3. QA reports using the Compressed Reporting Format: pass/fail per test category, details on failures.
-4. If tests fail, enter the Fix Loop targeting the failures.
+4. QA reports using the Compressed Reporting Format: pass/fail per test category, details on failures, and a mapping of tests to evaluation conditions.
+5. If tests fail, enter the Fix Loop targeting the failures.
 
 ### Step 8: Milestone-Level Reviews
 
 1. **QA runs the full test suite again** scoped to the entire milestone (same categories as Step 7).
-2. **Four reviewers** (same roles as wave-level) scoped to the entire milestone — catching cross-wave integration issues, cumulative drift, and overall quality. Each receives CONTEXT-REVIEWER (diff = entire milestone's changes).
+2. **Four reviewers** (same roles as wave-level) scoped to the entire milestone — catching cross-wave integration issues, cumulative drift, and overall quality. Each receives CONTEXT-REVIEWER-MILESTONE (includes DECISIONS.md, LEARNINGS.md, and DESIGN.md so reviewers understand architectural decisions and tradeoffs).
 3. If issues found, enter the Fix Loop.
 
 ### Step 9: Architect Tests Eval Conditions

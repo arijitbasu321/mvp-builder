@@ -11,12 +11,14 @@
 | Project Manager | Orchestrates development, delegates tasks, manages state, reviews work, escalates to human | Always active during Phase II |
 | Architect | Designs technical system based on UI/UX design (upfront + per-milestone), resolves merge conflicts, resolves technical conflicts, tests eval conditions | Upfront design (after UI/UX), start of each milestone (after UI/UX), on-demand for conflicts |
 | Developer | Writes application code, implements features, writes unit/integration tests. Managed with atomic tasks and frequent recycling to prevent context bloat | During wave execution |
-| UI Designer | Creates overall UI/UX design (upfront), milestone-specific UI/UX details, reviews UI/UX quality | Upfront design (first), start of each milestone (first), wave and milestone reviews |
-| QA Tester | Runs unit tests, E2E tests (Playwright), tests prompts against Golden Dataset with LLM-as-a-Judge | After each wave (before reviews), milestone-level reviews |
+| UI/UX Designer | Creates overall UI/UX design (upfront), milestone-specific UI/UX details, reviews UI/UX quality | Upfront design (first), start of each milestone (first), wave and milestone reviews |
+| Code Reviewer | Reviews code for logic errors, quality, test coverage, adherence to architecture and spec | Wave-level and milestone-level reviews |
+| Security Reviewer | Reviews for OWASP top 10 vulnerabilities, auth flows, input validation, secrets exposure | Wave-level and milestone-level reviews |
+| QA Tester | Runs unit tests, E2E tests (Playwright), tests prompts against Golden Dataset with LLM-as-a-Judge | After milestone deployment, milestone-level reviews |
 | Proofreader | Checks all user-facing text for spelling, grammar, tone consistency | Wave-level and milestone-level reviews |
 | DevOps | Deploys to non-prod and prod, manages infrastructure, environment config | After dev waves and at milestone completion |
 
-> Adjust this table during Phase I if the product demands different roles (e.g., add Security reviewer, remove DevOps if static hosting).
+> Adjust this table during Phase I if the product demands different roles (e.g., remove DevOps if static hosting).
 
 ## Tech Stack
 
@@ -66,7 +68,7 @@ These rules are output to every agent before each task via hooks. They are not s
 
 | Review Type | Reviewer | What They Check |
 |-------------|----------|----------------|
-| Code Review | Developer (different from author) | Logic errors, code quality, test coverage, adherence to architecture |
+| Code Review | Code Reviewer | Logic errors, code quality, test coverage, adherence to architecture and spec |
 | Security Review | Security Reviewer | Vulnerabilities (OWASP top 10), auth flows, input validation, secrets exposure |
 | UI/UX Review | UI Designer | Visual quality, responsiveness, accessibility, design consistency |
 | Proofread | Proofreader | Spelling, grammar, tone, placeholder text, broken links in user-facing content |

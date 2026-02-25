@@ -41,15 +41,11 @@ claude
 After the Product Manager completes Phase I and you've reviewed the output:
 
 ```bash
-cd /path/to/your-project
-
-# Swap the playbook symlink
-ln -sf PROJECT-MANAGER-PLAYBOOK.md CLAUDE.md
-
-# Install Project Manager hooks
-cp hooks/project-manager/settings.json .claude/settings.json
+# Run the transition script (validates Phase I output, swaps symlink, installs hooks)
+./transition.sh /path/to/your-project
 
 # Start Phase II
+cd /path/to/your-project
 claude
 ```
 
@@ -107,7 +103,7 @@ The golden rules are embedded directly in `hooks/project-manager/settings.json`.
 |------|------------|
 | Before Phase I | Write REQUIREMENTS.md |
 | During Phase I | Answer Product Manager questions, review spec output |
-| Between phases | Review all Phase I output, swap symlink, install hooks |
+| Between phases | Review all Phase I output, run `transition.sh` |
 | During Phase II | Test at milestone gates, provide API keys, unblock escalations |
 
 ## License
