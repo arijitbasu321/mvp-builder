@@ -151,7 +151,7 @@ When spawning teammates, pass them the context package for their role. Do not im
 | CONTEXT-QA | SPEC.md, current milestone spec, DESIGN-M{N}.md, milestone evaluation conditions |
 | CONTEXT-DEVOPS | SPEC.md (Deployment Strategy section), DESIGN.md, DESIGN-M{N}.md, DECISIONS.md, STATE.md |
 
-For per-milestone design steps, scope CONTEXT-DESIGNER to the current milestone spec instead of all milestone specs. Omit files that don't exist yet (e.g., DESIGN.md during upfront design Step 1).
+For per-milestone design steps, scope CONTEXT-DESIGNER to the current milestone spec instead of all milestone specs. Omit files that don't exist yet (e.g., DESIGN.md during upfront design Steps 1-2).
 
 ---
 

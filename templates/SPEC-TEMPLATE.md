@@ -70,7 +70,7 @@ These rules are output to every agent before each task via hooks. They are not s
 |-------------|----------|----------------|
 | Code Review | Code Reviewer | Logic errors, code quality, test coverage, adherence to architecture and spec |
 | Security Review | Security Reviewer | Vulnerabilities (OWASP top 10), auth flows, input validation, secrets exposure |
-| UI/UX Review | UI Designer | Visual quality, responsiveness, accessibility, design consistency |
+| UI/UX Review | UI/UX Designer | Visual quality, responsiveness, accessibility, design consistency |
 | Proofread | Proofreader | Spelling, grammar, tone, placeholder text, broken links in user-facing content |
 
 ### Milestone-Level Reviews (second pass after all waves complete)

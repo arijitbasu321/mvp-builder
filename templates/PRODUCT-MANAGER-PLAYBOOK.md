@@ -67,7 +67,7 @@ Do not add sections. Do not remove sections. Follow the structure in `templates/
 
 1. Define milestone topics and order them: foundational work (auth, database, deployment) first, features next, polish last.
 2. Map every user story to exactly one milestone.
-3. Create `milestones/M{N}-SPEC.md` for each milestone following `templates/MILESTONE-TEMPLATE.md`.
+3. Create the `milestones/` directory, then create `milestones/M{N}-SPEC.md` for each milestone following `templates/MILESTONE-TEMPLATE.md`.
 4. Write concrete evaluation conditions. Every condition must have a verification method.
 5. Leave the Wave Plan section empty — the Project Manager fills it.
 

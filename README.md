@@ -18,21 +18,29 @@ A framework for building production-ready applications using Claude Code. This f
 
 The human is the gatekeeper between phases. Nothing advances without your review and approval.
 
-## Quick Start
+## Setup
+
+Copy the framework into your project manually:
 
 ```bash
-# Clone this repo
-git clone <repo-url>
-cd builder
+# Copy templates
+cp -r templates/ /path/to/your-project/templates/
 
-# Set up your project
-./setup.sh /path/to/your-project
+# Copy hooks
+cp -r hooks/ /path/to/your-project/hooks/
+
+# Create CLAUDE.md symlink pointing to Phase I playbook
+cd /path/to/your-project
+ln -s templates/PRODUCT-MANAGER-PLAYBOOK.md CLAUDE.md
+
+# Install Phase I hooks
+mkdir -p .claude
+cp hooks/product-manager/settings.json .claude/settings.json
 
 # Write your requirements
-vi /path/to/your-project/REQUIREMENTS.md
+vi REQUIREMENTS.md
 
 # Start Phase I
-cd /path/to/your-project
 claude
 ```
 
@@ -40,18 +48,21 @@ claude
 
 After the Product Manager completes Phase I and you've reviewed the output:
 
+1. Review `HOOK-RECOMMENDATIONS.md` and apply any hook changes you agree with
+2. Swap CLAUDE.md and hooks:
+
 ```bash
-# Run the transition script (validates Phase I output, swaps symlink, installs hooks)
-./transition.sh /path/to/your-project
+cd /path/to/your-project
+ln -sf PROJECT-MANAGER-PLAYBOOK.md CLAUDE.md
+cp hooks/project-manager/settings.json .claude/settings.json
 
 # Start Phase II
-cd /path/to/your-project
 claude
 ```
 
 ## Directory Structure
 
-After running `setup.sh`, your project will have:
+After setup, your project will have:
 
 ```
 your-project/
@@ -103,7 +114,7 @@ The golden rules are embedded directly in `hooks/project-manager/settings.json`.
 |------|------------|
 | Before Phase I | Write REQUIREMENTS.md |
 | During Phase I | Answer Product Manager questions, review spec output |
-| Between phases | Review all Phase I output, run `transition.sh` |
+| Between phases | Review all Phase I output, review HOOK-RECOMMENDATIONS.md, swap CLAUDE.md and hooks |
 | During Phase II | Test at milestone gates, provide API keys, unblock escalations |
 
 ## License
