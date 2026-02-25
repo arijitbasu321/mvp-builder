@@ -6,36 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash hooks/project-manager/scripts/enforce-team-worktrees.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash hooks/project-manager/scripts/enforce-issues-writer.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash hooks/project-manager/scripts/enforce-decisions-append.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash hooks/project-manager/scripts/enforce-state-size.sh"
+            "command": "echo 'GOLDEN RULES — Read before proceeding:\n1. Spawn agent teams (not sub-agents) with git worktree.\n2. Must write unit tests with 80% code coverage and all tests must pass.\n3. UI designer must do UI testing through Playwright.\n4. Write all learnings to LEARNINGS.md.\n5. Write all decisions to DECISIONS.md.\n6. Only the Project Manager writes to ISSUES.md.\n7. STATE.md must not exceed 50 lines.'"
           }
         ]
       }

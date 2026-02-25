@@ -14,10 +14,6 @@ You do NOT write code directly. You delegate to teammates.
 
 <!-- FILL-BY-PRODUCT-MANAGER -->
 
-### Deployment
-
-<!-- FILL-BY-PRODUCT-MANAGER: Non-prod and prod deployment commands/URLs -->
-
 ### Team Structure
 
 <!-- FILL-BY-PRODUCT-MANAGER: Roles table from SPEC.md -->
@@ -39,9 +35,11 @@ On every session start (fresh or resume), read files in this exact order:
 5. **LEARNINGS.md** — active learnings that affect current work
 6. **DESIGN.md** — overall project design (architecture + UI/UX)
 7. **Current milestone spec** — `milestones/M{N}-SPEC.md` for the current milestone
-8. **Current milestone design** — `DESIGN-M{N}.md` for the current milestone (if it exists)
+8. **Current milestone design** — `DESIGN-M{N}.md` — skip only if the current milestone has not yet reached the design compilation step
 
 If STATE.md does not exist, you are starting from scratch. Begin with the Upfront Design phase, then proceed to Milestone 1.
+
+On session resume: follow this protocol. Do NOT re-read completed milestone specs or designs — only the current one. Do NOT re-run completed waves — resume from where STATE.md says you are.
 
 ---
 
@@ -114,199 +112,19 @@ Separate file per milestone. Contains the combined output from the per-milestone
 
 ---
 
-## Upfront Design Phase
+## Context Packages
 
-Before any milestone begins, establish the project-wide design. This runs once at the start of Phase II.
+When spawning teammates, pass them the context package for their role. Do not improvise — use these exact sets.
 
-### Step 1: UI/UX Design
+| Package | Files |
+|---------|-------|
+| CONTEXT-DESIGNER | SPEC.md, all milestone specs (`milestones/M{N}-SPEC.md`), DESIGN.md, DECISIONS.md, LEARNINGS.md |
+| CONTEXT-ARCHITECT | SPEC.md, all milestone specs, DESIGN.md, DECISIONS.md, LEARNINGS.md, **plus** any design output from the current step's UI/UX Designer |
+| CONTEXT-DEVELOPER | SPEC.md, current milestone spec (`milestones/M{N}-SPEC.md`), DESIGN-M{N}.md, DECISIONS.md, LEARNINGS.md |
+| CONTEXT-REVIEWER | Diff of changes being reviewed, SPEC.md, DESIGN-M{N}.md |
+| CONTEXT-QA | SPEC.md, current milestone spec, DESIGN-M{N}.md |
 
-1. Spawn the UI/UX Designer as a teammate.
-2. Pass them: SPEC.md, all milestone specs (`milestones/M{N}-SPEC.md`).
-3. UI/UX Designer produces the overall UI/UX design: colors, typography, spacing, component patterns, wireframes, layout patterns.
-4. UI/UX Designer exits after design is complete.
-
-### Step 2: Architect Design
-
-**Must wait for Step 1 to complete.** The Architect designs the technical system to serve the UI/UX design.
-
-1. Spawn the Architect as a teammate.
-2. Pass them: SPEC.md, all milestone specs, DECISIONS.md, LEARNINGS.md, **and the UI/UX design from Step 1**.
-3. Architect produces the overall technical design: system architecture, component structure, data models, API contracts, database schema.
-4. Architect exits after design is complete.
-
-### Step 3: Compile DESIGN.md
-
-1. Compile the outputs from Step 1 and Step 2 into a single `DESIGN.md`.
-2. This file is the persistent reference for all milestones.
-3. Update STATE.md to reflect that upfront design is complete.
-
----
-
-## Per-Milestone Process
-
-Execute these steps for each milestone. Do not skip steps.
-
-### Step 1: UI/UX Designer — Milestone Details
-
-1. Spawn the UI/UX Designer as a teammate.
-2. Pass them: SPEC.md, current milestone spec (`milestones/M{N}-SPEC.md`), DESIGN.md (overall design), DECISIONS.md, LEARNINGS.md.
-3. UI/UX Designer produces milestone-specific UI/UX details (screens, interactions, component specifics) building on the overall design.
-4. UI/UX Designer exits after design is complete.
-
-### Step 2: Architect — Milestone Details
-
-**Must wait for Step 1 to complete.** The Architect designs implementation details informed by the milestone UI/UX design.
-
-1. Spawn the Architect as a teammate.
-2. Pass them: SPEC.md, current milestone spec, DESIGN.md (overall design), **milestone UI/UX design from Step 1**, DECISIONS.md, LEARNINGS.md.
-3. Architect produces milestone-specific implementation details: component structure, data flow, API contracts, database schema changes.
-4. If the milestone includes AI/prompt features, the Architect creates a **Golden Dataset** for prompt testing — input/output pairs that define expected behavior.
-5. Architect exits after design is complete.
-
-### Step 3: Compile DESIGN-M{N}.md
-
-1. Compile the outputs from Step 1 and Step 2 into a single `DESIGN-M{N}.md`.
-2. This file contains all design details (UI/UX + technical) for this milestone.
-
-### Step 4: Break Into Waves
-
-1. Read the milestone spec's Features list and the milestone design.
-2. Group features into waves. Each wave is a batch of related tasks that complete a feature or logical unit.
-3. Max 5 tasks per wave. Tasks within a wave should be parallelizable.
-4. Write the wave plan into the milestone spec's Wave Plan section.
-5. Update STATE.md with the wave count.
-
-### Step 5: Execute Waves
-
-For each wave:
-
-1. **Create the team**: `TeamCreate` for this wave.
-2. **Spawn developer teammates**: Use the `Task` tool with `team_name` to spawn all developer teammates for this wave at once. Do not spawn them one at a time.
-3. **Each developer gets**:
-   - Their specific task description
-   - Files to read: DECISIONS.md, LEARNINGS.md, SPEC.md, current milestone spec, DESIGN-M{N}.md
-   - Clear acceptance criteria
-4. **Developers work in worktrees**: Each developer gets an isolated git worktree automatically.
-5. **Developers build features and write tests** (unit tests). They do NOT run the full test suite themselves.
-6. **Developers report back** using the compressed format (see below).
-7. **You merge results**: After all developers complete, review their work and merge.
-
-### Step 6: Deploy to Non-Prod
-
-After development waves complete (before reviews):
-
-1. Spawn DevOps to deploy the current state to non-prod / staging.
-2. Verify the deployment works.
-3. If deployment fails, fix before proceeding to QA and reviews.
-
-### Step 7: QA Testing
-
-After non-prod deployment:
-
-1. Spawn the QA Tester as a teammate.
-2. QA runs the full test suite:
-   - **Unit tests** — all must pass
-   - **E2E tests with Playwright** — validates user flows
-   - **Prompt testing against Golden Dataset with LLM-as-a-Judge** — if the milestone has AI features, QA tests all prompts against the Golden Dataset created by the Architect, using an LLM to judge response quality
-3. QA reports: pass/fail per test category, details on failures.
-4. If tests fail, enter the Fix Loop (Step 10) targeting the failures before proceeding to reviews.
-
-### Step 8: Wave-Level Reviews
-
-Spawn four review teammates simultaneously:
-
-| Reviewer | Focus |
-|----------|-------|
-| Code Reviewer | Logic errors, code quality, test coverage, architecture adherence |
-| Security Reviewer | OWASP top 10, auth flows, input validation, secrets exposure |
-| UI/UX Reviewer | Visual quality, responsiveness, accessibility, design consistency |
-| Proofreader | Spelling, grammar, tone, placeholder text, broken links |
-
-Each reviewer receives: the diff of changes in this wave, SPEC.md, DESIGN-M{N}.md.
-Each reviewer produces: a list of issues found (or "no issues").
-
-### Step 9: Milestone-Level Reviews
-
-After all waves complete, run milestone-level reviews:
-
-1. **QA runs the full test suite again** scoped to the entire milestone:
-   - Unit tests
-   - E2E tests with Playwright
-   - Prompt testing against Golden Dataset with LLM-as-a-Judge (if applicable)
-2. **Four reviewers** (same as wave-level) scoped to the entire milestone — catching cross-wave integration issues, cumulative drift, and overall quality.
-
-### Step 10: Fix Loop
-
-1. Collect all issues from QA testing and reviews (wave and milestone).
-2. Spawn developer teammates to fix issues.
-3. Re-run QA tests and reviews on the fixes.
-4. Repeat until a round produces zero new issues from all reviewers and QA.
-5. **If 10 rounds pass without convergence** — stop and escalate to the human via `AskUserQuestion`. List the remaining issues and ask for direction.
-
-### Step 11: Architect Tests Eval Conditions
-
-1. Spawn the Architect.
-2. Pass them the milestone spec's Evaluation Conditions table.
-3. Architect independently tests each condition using the specified verification method.
-4. Architect reports: pass/fail per condition, details on failures.
-5. If any condition fails, enter the Fix Loop (Step 10) targeting the failures.
-
-### Step 12: Human Tests Eval Conditions
-
-1. Present the evaluation conditions to the human via `AskUserQuestion`.
-2. Ask the human to test each condition and report results.
-3. If the human reports issues, enter the Fix Loop (Step 10) targeting those issues.
-4. Milestone is not complete until the human approves.
-
-### Step 13: Deploy to Prod
-
-1. Deploy the milestone to production.
-2. Verify the production deployment works.
-3. If this is not the final milestone, proceed to the next one.
-
----
-
-## Developer Agent Management
-
-When managing **developer agents only** (not architects, designers, reviewers, or other roles), follow these rules to prevent context bloat:
-
-### Atomic Task Scoping
-
-Each developer agent gets one small, well-defined task. Not "build the auth system" but "implement the login form component per this design." Agent does the task, reports back, exits.
-
-### Agent Recycling
-
-Instead of sending an agent back to fix 5 issues, spawn a fresh agent for each fix (or small batch). Fresh context means the agent actually reads the design docs and rules instead of being buried under rounds of prior work.
-
-### Max-Turn Limits
-
-Set a turn budget when spawning developer agents. If an agent hasn't completed its task within N turns, it reports back what's done and what's left, and you spawn a fresh one to continue.
-
-### One Agent, One Concern
-
-A developer agent shouldn't also be doing its own code review or debugging deployment issues. Keep roles strict so tasks stay small.
-
----
-
-## Milestone Cleanup
-
-After each milestone completes:
-
-1. **Prune LEARNINGS.md** — move entries that no longer affect future work to `LEARNINGS-archive.md`.
-2. **Update STATE.md** — mark milestone as done, set current to next milestone.
-3. **Run regression tests** — ensure previous milestones still work.
-4. **Update DECISIONS.md** — log any milestone-level decisions made.
-
----
-
-## Session Resume Protocol
-
-When resuming after a context reset or new session:
-
-1. Read files in the Bootstrap Protocol order.
-2. STATE.md tells you exactly where you are.
-3. Do NOT re-read completed milestone specs or designs. Only read the current one.
-4. Do NOT re-run completed waves. Pick up from where STATE.md says you are.
+For per-milestone design steps, scope CONTEXT-DESIGNER to the current milestone spec instead of all milestone specs.
 
 ---
 
@@ -327,23 +145,180 @@ No code snippets. No explanations of approach. No stack traces. If you need deta
 
 ---
 
-## Context Management
+## Fix Loop Procedure
 
-1. **You never write code directly.** Delegate to teammates who have fresh context.
-2. **Each teammate receives only what they need.** Task description, relevant files, DECISIONS.md, LEARNINGS.md. Not the entire project history.
-3. **Your context is precious.** Keep it focused on coordination, not implementation details.
-4. **When context gets heavy** — check context usage. If over 60%, wrap up the current wave, save state, and tell the human to start a new session with this playbook.
+This procedure is referenced by multiple steps. When a step says "enter the Fix Loop," follow this:
+
+1. Collect all issues from the triggering step (QA failures, review findings, eval condition failures).
+2. Spawn developer teammates to fix issues (following the developer management rules in Step 5).
+3. Re-run the checks that found the issues (QA tests, reviews, or eval conditions — whichever triggered this loop).
+4. Repeat until a round produces zero new issues.
+5. **If 10 rounds pass without convergence** — stop and escalate to the human via `AskUserQuestion`. List the remaining issues and ask for direction.
+
+---
+
+## Design Ordering Rule
+
+In all design phases (upfront and per-milestone): UI/UX Designer completes first, then the Architect receives the UI/UX output. Never run them in parallel. Never start the Architect before the UI/UX Designer finishes.
+
+---
+
+## Upfront Design Phase
+
+Before any milestone begins, establish the project-wide design. This runs once at the start of Phase II.
+
+### Step 1: UI/UX Design
+
+1. Spawn the UI/UX Designer as a teammate.
+2. Pass them CONTEXT-DESIGNER.
+3. UI/UX Designer produces the overall UI/UX design: colors, typography, spacing, component patterns, wireframes, layout patterns.
+
+### Step 2: Architect Design
+
+1. Spawn the Architect as a teammate.
+2. Pass them CONTEXT-ARCHITECT (which includes the UI/UX design from Step 1).
+3. Architect produces the overall technical design: system architecture, component structure, data models, API contracts, database schema.
+
+### Step 3: Compile DESIGN.md
+
+1. Compile the outputs from Step 1 and Step 2 into a single `DESIGN.md`.
+2. This file is the persistent reference for all milestones.
+3. Update STATE.md to reflect that upfront design is complete.
+
+---
+
+## Per-Milestone Process
+
+Execute these steps for each milestone. Do not skip steps.
+
+### Step 1: UI/UX Designer — Milestone Details
+
+1. Spawn the UI/UX Designer as a teammate.
+2. Pass them CONTEXT-DESIGNER (scoped to current milestone spec).
+3. UI/UX Designer produces milestone-specific UI/UX details (screens, interactions, component specifics) building on the overall design.
+
+### Step 2: Architect — Milestone Details
+
+1. Spawn the Architect as a teammate.
+2. Pass them CONTEXT-ARCHITECT (which includes the milestone UI/UX design from Step 1).
+3. Architect produces milestone-specific implementation details: component structure, data flow, API contracts, database schema changes.
+4. If the milestone includes AI/prompt features, the Architect creates a **Golden Dataset** for prompt testing — input/output pairs that define expected behavior.
+
+### Step 3: Compile DESIGN-M{N}.md
+
+1. Compile the outputs from Step 1 and Step 2 into a single `DESIGN-M{N}.md`.
+2. This file contains all design details (UI/UX + technical) for this milestone.
+
+### Step 4: Break Into Waves
+
+1. Read the milestone spec's Features list and the milestone design.
+2. Group features into waves. Each wave is a batch of related tasks that complete a feature or logical unit.
+3. Tasks within a wave MUST be parallelizable — no task may depend on another task in the same wave. Target 2-5 tasks per wave, max 5.
+4. Write the wave plan into the milestone spec's Wave Plan section.
+5. Update STATE.md with the wave count.
+
+### Step 5: Execute Waves
+
+**Developer management rules** — these apply to all developer spawning in this playbook (this step and the Fix Loop):
+
+- **Atomic tasks**: Each developer gets one small, well-defined task. Not "build the auth system" but "implement the login form component per this design." Agent does the task, reports back, exits.
+- **Fresh agents for fixes**: Do not send an agent back to fix issues. Spawn a fresh agent for each fix. Fresh context means the agent reads the design docs instead of being buried under prior work.
+- **Turn budget**: Set `max_turns: 25` when spawning developer agents. If an agent hasn't completed within 25 turns, it reports what's done and what's left, and you spawn a fresh one.
+- **One agent, one concern**: A developer does not do code review, QA, or deployment. Keep roles strict.
+
+**For each wave, execute these sub-steps in order:**
+
+**5a. Update STATE.md** with the current wave number.
+
+**5b. Spawn developers.**
+1. Create the team: `TeamCreate` for this wave.
+2. Use the `Task` tool with `team_name` to spawn all developer teammates for this wave at once. Do not spawn them one at a time.
+3. Each developer gets: their task description, CONTEXT-DEVELOPER, and clear acceptance criteria.
+4. Developers work in isolated git worktrees automatically.
+5. Developers build features and write unit tests. They do NOT run the full test suite.
+6. Developers report back using the Compressed Reporting Format. Reject verbose reports.
+
+**5c. Merge results.**
+1. Check that each developer's status is "done" with no blockers.
+2. Merge each developer's worktree branch into the main branch.
+3. If merge conflicts arise, spawn the Architect to resolve them.
+
+**5d. Wave-Level Reviews.**
+Spawn four reviewers simultaneously: Code Reviewer, Security Reviewer, UI/UX Reviewer, Proofreader. Each receives CONTEXT-REVIEWER (diff = this wave's changes). Each produces a list of issues or "no issues." If issues found, enter the Fix Loop targeting those issues. Reviewers must report using the Compressed Reporting Format.
+
+**After all waves complete**, update STATE.md status to "review" and proceed to Step 6.
+
+### Step 6: Deploy to Non-Prod
+
+1. Spawn DevOps to deploy the current state to non-prod / staging.
+2. Verify the deployment works.
+3. If deployment fails, spawn DevOps to diagnose and fix. If the fix requires code changes, spawn a developer. Re-deploy and verify before proceeding.
+
+### Step 7: QA Testing
+
+1. Spawn the QA Tester as a teammate. Pass them CONTEXT-QA.
+2. QA runs the full test suite:
+   - **Unit tests** — all must pass
+   - **E2E tests with Playwright** — validates user flows
+   - **Prompt testing against Golden Dataset with LLM-as-a-Judge** — if the milestone has AI features, QA tests all prompts against the Golden Dataset created by the Architect, using an LLM to judge response quality
+3. QA reports using the Compressed Reporting Format: pass/fail per test category, details on failures.
+4. If tests fail, enter the Fix Loop targeting the failures.
+
+### Step 8: Milestone-Level Reviews
+
+1. **QA runs the full test suite again** scoped to the entire milestone (same categories as Step 7).
+2. **Four reviewers** (same roles as wave-level) scoped to the entire milestone — catching cross-wave integration issues, cumulative drift, and overall quality. Each receives CONTEXT-REVIEWER (diff = entire milestone's changes).
+3. If issues found, enter the Fix Loop.
+
+### Step 9: Architect Tests Eval Conditions
+
+1. Spawn the Architect.
+2. Pass them the milestone spec's Evaluation Conditions table.
+3. Architect independently tests each condition using the specified verification method.
+4. Architect reports: pass/fail per condition, details on failures.
+5. If any condition fails, enter the Fix Loop targeting the failures.
+
+### Step 10: Human Tests Eval Conditions
+
+1. Present the evaluation conditions to the human via `AskUserQuestion`.
+2. Ask the human to test each condition and report results.
+3. If the human reports issues, enter the Fix Loop targeting those issues. After the Fix Loop resolves, return to this step and ask the human to re-test.
+4. Milestone is not complete until the human approves.
+
+### Step 11: Deploy to Prod
+
+1. Deploy the milestone to production.
+2. Verify the production deployment works.
+3. If this is not the final milestone, proceed to the next one.
+
+---
+
+## Milestone Cleanup
+
+After each milestone completes:
+
+1. **Prune LEARNINGS.md** — move entries that no longer affect future work to `LEARNINGS-archive.md`.
+2. **Update STATE.md** — mark milestone as done, set current to next milestone.
+3. **Run regression tests** — ensure previous milestones still work.
+4. **Update DECISIONS.md** — log any milestone-level decisions made.
 
 ---
 
 ## Architect Availability
 
-The Architect is not just a design-phase role. Invoke the Architect mid-milestone when:
+The Architect may be spawned mid-milestone for:
 
-- **Merge conflicts** need resolution between teammate branches
-- **Technical conflicts** arise between teammates (e.g., two different approaches to the same problem)
-- **Design questions** emerge that aren't covered in DESIGN-M{N}.md
-- **Evaluation conditions fail** and the fix isn't obvious
+- **Merge conflicts** between teammate branches
+- **Design questions** not covered in DESIGN-M{N}.md
+- **Evaluation condition failures** where the fix is non-obvious
+
+---
+
+## Context Management
+
+1. **You never write code directly.** Delegate to teammates who have fresh context.
+2. **Your context is precious.** Keep it focused on coordination, not implementation details.
+3. **When context gets heavy** — check context usage. If over 60%, wrap up the current wave, save state, and tell the human to start a new session with this playbook.
 
 ---
 
@@ -352,7 +327,7 @@ The Architect is not just a design-phase role. Invoke the Architect mid-mileston
 - Use `AskUserQuestion` for all human interaction.
 - Communicate at these points:
   - Start of each milestone (confirm wave plan)
-  - Step 12 (human testing)
+  - Step 10 (human testing)
   - Escalation from Fix Loop (10 rounds exceeded)
   - Blockers that need human input (API keys, service access, product decisions)
 - Keep updates concise. The human does not need play-by-play of every wave.

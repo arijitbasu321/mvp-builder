@@ -1,6 +1,6 @@
 # App Builder
 
-A framework for building production-ready applications using Claude Code. Instead of a monolithic playbook with instructions agents ignore, this framework uses **decoupled phases**, **human gatekeeping**, and **hooks that mechanically enforce rules**. You provide the requirements. Two AI Product Managers handle specification and development.
+A framework for building production-ready applications using Claude Code. This framework uses **decoupled phases** and **human gatekeeping**. You provide the requirements. Two AI Product Managers handle specification and development.
 
 ## Prerequisites
 
@@ -30,9 +30,6 @@ cd builder
 
 # Write your requirements
 vi /path/to/your-project/REQUIREMENTS.md
-
-# Fill in project details (deployment platform, domain, AI provider, constraints)
-vi /path/to/your-project/templates/PRODUCT-MANAGER-PLAYBOOK.md
 
 # Start Phase I — the Product Manager reads your requirements and produces specs
 cd /path/to/your-project
@@ -71,19 +68,9 @@ your-project/
 │   └── PROJECT-MANAGER-PLAYBOOK.md        # Phase II instructions (template)
 ├── hooks/
 │   ├── product-manager/
-│   │   ├── settings.json                  # Phase I hook config
-│   │   └── scripts/
-│   │       ├── block-requirements-edit.sh # Prevents AI from modifying REQUIREMENTS.md
-│   │       └── validate-spec-structure.sh # Ensures SPEC.md has all required sections
+│   │   └── settings.json                  # Phase I hook config (empty — PM doesn't spawn agents)
 │   └── project-manager/
-│       ├── settings.json                  # Phase II hook config
-│       ├── project-config.sh              # Test commands, coverage thresholds (fill per project)
-│       └── scripts/
-│           ├── enforce-team-worktrees.sh  # Blocks bare sub-agents (must use Agent Teams)
-│           ├── enforce-issues-writer.sh   # Only PM can write ISSUES.md
-│           ├── enforce-state-size.sh      # STATE.md stays under 50 lines
-│           ├── enforce-test-coverage.sh   # Checks test coverage meets threshold
-│           └── enforce-decisions-append.sh # DECISIONS.md is append-only
+│       └── settings.json                  # Phase II hook — outputs golden rules before each Task
 └── .claude/
     └── settings.json                      # Active hook config (swapped between phases)
 ```
@@ -93,7 +80,7 @@ Files created during execution:
 ```
 your-project/
 ├── SPEC.md                                # Product specification (Phase I output)
-├── PROJECT-MANAGER-PLAYBOOK.md            # Filled development playbook (Phase I output)
+├── PROJECT-MANAGER-PLAYBOOK.md            # Project-specific development playbook (Phase I output)
 ├── HOOK-RECOMMENDATIONS.md                # Suggested hook changes (Phase I output)
 ├── milestones/
 │   ├── M1-SPEC.md                         # Per-milestone specs (Phase I output)
@@ -107,50 +94,17 @@ your-project/
 └── ISSUES.md                              # Issue tracker — PM-only (Phase II)
 ```
 
-## Hook Configuration
+## Hooks
 
-Hooks enforce rules mechanically — agents cannot bypass them.
+Phase II has one hook: before every `Task` call, the golden rules are output into the agent's context. This ensures every spawned agent sees the rules before it starts working.
 
-### Phase I Hooks (Product Manager)
-
-| Hook | Trigger | What It Does |
-|------|---------|-------------|
-| block-requirements-edit | PreToolUse on Edit/Write | Prevents modification of REQUIREMENTS.md |
-| validate-spec-structure | PostToolUse on Write | Ensures SPEC.md contains all required sections |
-
-### Phase II Hooks (Project Manager)
-
-| Hook | Trigger | What It Does |
-|------|---------|-------------|
-| enforce-team-worktrees | PreToolUse on Task | Blocks Task calls without team_name (no bare sub-agents) |
-| enforce-issues-writer | PreToolUse on Edit/Write | Blocks teammates from writing to ISSUES.md |
-| enforce-state-size | PostToolUse on Write/Edit | Blocks STATE.md from exceeding 50 lines |
-| enforce-decisions-append | PreToolUse on Edit | Blocks edits that remove content from DECISIONS.md |
-
-### Customizing Hooks
-
-Edit `hooks/project-manager/project-config.sh` to set project-specific values:
-
-```bash
-export TEST_CMD="npm test -- --coverage"    # Your test command
-export COVERAGE_THRESHOLD=80                 # Minimum coverage %
-export PLAYWRIGHT_TEST_DIR="tests/e2e"       # E2E test directory
-```
-
-## What Hooks Cannot Enforce
-
-Some rules require judgment and must rely on playbook instructions:
-
-- Parallel teammate dispatch (no hook for sequential vs parallel spawning)
-- Compressed report format (SendMessage content is not hookable)
-- Review quality (requires understanding, not pattern matching)
-- Wave plan correctness (requires understanding feature dependencies)
+The golden rules are embedded directly in `hooks/project-manager/settings.json`. To customize them for your project, edit the rules in that file after Phase I.
 
 ## Your Role
 
 | When | What You Do |
 |------|------------|
-| Before Phase I | Write REQUIREMENTS.md, fill playbook placeholders |
+| Before Phase I | Write REQUIREMENTS.md |
 | During Phase I | Answer Product Manager questions, review spec output |
 | Between phases | Review all Phase I output, swap symlink, install hooks |
 | During Phase II | Test at milestone gates, provide API keys, unblock escalations |

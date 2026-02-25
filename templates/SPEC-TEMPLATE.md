@@ -50,7 +50,7 @@
 
 ## Golden Rules
 
-These rules are mechanically enforced by hooks. They are not suggestions.
+These rules are output to every agent before each task via hooks. They are not suggestions.
 
 1. **Agent Teams with worktrees** — All teammates are spawned via `TeamCreate`/`Task` with `team_name`. No bare sub-agents. Each teammate works in an isolated git worktree.
 2. **Unit tests with coverage** — All code must have unit tests. Coverage must meet the project threshold (default 80%). All tests must pass.
