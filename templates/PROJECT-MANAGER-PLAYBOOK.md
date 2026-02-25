@@ -37,10 +37,11 @@ On every session start (fresh or resume), read files in this exact order:
 3. **STATE.md** — current milestone, wave, what's done, what's blocked
 4. **DECISIONS.md** — all settled decisions (never re-litigate these)
 5. **LEARNINGS.md** — active learnings that affect current work
-6. **Current milestone spec** — `milestones/M{N}-SPEC.md` for the current milestone
-7. **Current design** — `DESIGN-M{N}.md` for the current milestone (if it exists)
+6. **DESIGN.md** — overall project design (architecture + UI/UX)
+7. **Current milestone spec** — `milestones/M{N}-SPEC.md` for the current milestone
+8. **Current milestone design** — `DESIGN-M{N}.md` for the current milestone (if it exists)
 
-If STATE.md does not exist, you are starting from scratch. Begin with Milestone 1.
+If STATE.md does not exist, you are starting from scratch. Begin with the Upfront Design phase, then proceed to Milestone 1.
 
 ---
 
@@ -103,32 +104,78 @@ Format:
 
 Prune at milestone boundaries: move entries that no longer affect future work to `LEARNINGS-archive.md`.
 
+### DESIGN.md — Overall Project Design
+
+Created during the Upfront Design phase. Contains the combined output from the UI/UX Designer (design system, wireframes, layout patterns) and the Architect (system architecture, data models, API contracts). This is the persistent reference for all milestones.
+
 ### DESIGN-M{N}.md — Milestone Design
 
-Separate file per milestone. Created by the Architect in Step 1. Contains implementation details: component structure, data flow, API contracts, database schema changes.
+Separate file per milestone. Contains the combined output from the per-milestone UI/UX Designer pass and Architect pass. Implementation details specific to this milestone, building on DESIGN.md.
+
+---
+
+## Upfront Design Phase
+
+Before any milestone begins, establish the project-wide design. This runs once at the start of Phase II.
+
+### Step 1: UI/UX Design
+
+1. Spawn the UI/UX Designer as a teammate.
+2. Pass them: SPEC.md, all milestone specs (`milestones/M{N}-SPEC.md`).
+3. UI/UX Designer produces the overall UI/UX design: colors, typography, spacing, component patterns, wireframes, layout patterns.
+4. UI/UX Designer exits after design is complete.
+
+### Step 2: Architect Design
+
+**Must wait for Step 1 to complete.** The Architect designs the technical system to serve the UI/UX design.
+
+1. Spawn the Architect as a teammate.
+2. Pass them: SPEC.md, all milestone specs, DECISIONS.md, LEARNINGS.md, **and the UI/UX design from Step 1**.
+3. Architect produces the overall technical design: system architecture, component structure, data models, API contracts, database schema.
+4. Architect exits after design is complete.
+
+### Step 3: Compile DESIGN.md
+
+1. Compile the outputs from Step 1 and Step 2 into a single `DESIGN.md`.
+2. This file is the persistent reference for all milestones.
+3. Update STATE.md to reflect that upfront design is complete.
 
 ---
 
 ## Per-Milestone Process
 
-Execute these 10 steps for each milestone. Do not skip steps.
+Execute these steps for each milestone. Do not skip steps.
 
-### Step 1: Architect Designs
+### Step 1: UI/UX Designer — Milestone Details
+
+1. Spawn the UI/UX Designer as a teammate.
+2. Pass them: SPEC.md, current milestone spec (`milestones/M{N}-SPEC.md`), DESIGN.md (overall design), DECISIONS.md, LEARNINGS.md.
+3. UI/UX Designer produces milestone-specific UI/UX details (screens, interactions, component specifics) building on the overall design.
+4. UI/UX Designer exits after design is complete.
+
+### Step 2: Architect — Milestone Details
+
+**Must wait for Step 1 to complete.** The Architect designs implementation details informed by the milestone UI/UX design.
 
 1. Spawn the Architect as a teammate.
-2. Pass them: SPEC.md, current milestone spec (`milestones/M{N}-SPEC.md`), DECISIONS.md, LEARNINGS.md.
-3. Architect produces `DESIGN-M{N}.md` with implementation details.
+2. Pass them: SPEC.md, current milestone spec, DESIGN.md (overall design), **milestone UI/UX design from Step 1**, DECISIONS.md, LEARNINGS.md.
+3. Architect produces milestone-specific implementation details: component structure, data flow, API contracts, database schema changes.
 4. Architect exits after design is complete.
 
-### Step 2: Break Into Waves
+### Step 3: Compile DESIGN-M{N}.md
 
-1. Read the milestone spec's Features list and the Architect's design.
+1. Compile the outputs from Step 1 and Step 2 into a single `DESIGN-M{N}.md`.
+2. This file contains all design details (UI/UX + technical) for this milestone.
+
+### Step 4: Break Into Waves
+
+1. Read the milestone spec's Features list and the milestone design.
 2. Group features into waves. Each wave is a batch of related tasks that complete a feature or logical unit.
 3. Max 5 tasks per wave. Tasks within a wave should be parallelizable.
 4. Write the wave plan into the milestone spec's Wave Plan section.
 5. Update STATE.md with the wave count.
 
-### Step 3: Execute Waves
+### Step 5: Execute Waves
 
 For each wave:
 
@@ -142,7 +189,7 @@ For each wave:
 5. **Teammates report back** using the compressed format (see below).
 6. **You merge results**: After all teammates complete, review their work and merge.
 
-### Step 4: Deploy to Non-Prod
+### Step 6: Deploy to Non-Prod
 
 After development waves complete (before reviews):
 
@@ -150,7 +197,7 @@ After development waves complete (before reviews):
 2. Verify the deployment works.
 3. If deployment fails, fix before proceeding to reviews.
 
-### Step 5: Wave-Level Reviews
+### Step 7: Wave-Level Reviews
 
 Spawn four review teammates simultaneously:
 
@@ -164,11 +211,11 @@ Spawn four review teammates simultaneously:
 Each reviewer receives: the diff of changes in this wave, SPEC.md, DESIGN-M{N}.md.
 Each reviewer produces: a list of issues found (or "no issues").
 
-### Step 6: Milestone-Level Reviews
+### Step 8: Milestone-Level Reviews
 
 After all waves complete, run the same four reviews scoped to the entire milestone. This is a second pass catching cross-wave integration issues, cumulative drift, and overall quality.
 
-### Step 7: Fix Loop
+### Step 9: Fix Loop
 
 1. Collect all issues from wave and milestone reviews.
 2. Spawn developer teammates to fix issues.
@@ -176,26 +223,48 @@ After all waves complete, run the same four reviews scoped to the entire milesto
 4. Repeat until a review round produces zero new issues.
 5. **If 10 rounds pass without convergence** — stop and escalate to the human via `AskUserQuestion`. List the remaining issues and ask for direction.
 
-### Step 8: Architect Tests Eval Conditions
+### Step 10: Architect Tests Eval Conditions
 
 1. Spawn the Architect.
 2. Pass them the milestone spec's Evaluation Conditions table.
 3. Architect independently tests each condition using the specified verification method.
 4. Architect reports: pass/fail per condition, details on failures.
-5. If any condition fails, enter the Fix Loop (Step 7) targeting the failures.
+5. If any condition fails, enter the Fix Loop (Step 9) targeting the failures.
 
-### Step 9: Human Tests Eval Conditions
+### Step 11: Human Tests Eval Conditions
 
 1. Present the evaluation conditions to the human via `AskUserQuestion`.
 2. Ask the human to test each condition and report results.
-3. If the human reports issues, enter the Fix Loop (Step 7) targeting those issues.
+3. If the human reports issues, enter the Fix Loop (Step 9) targeting those issues.
 4. Milestone is not complete until the human approves.
 
-### Step 10: Deploy to Prod
+### Step 12: Deploy to Prod
 
 1. Deploy the milestone to production.
 2. Verify the production deployment works.
 3. If this is not the final milestone, proceed to the next one.
+
+---
+
+## Developer Agent Management
+
+When managing **developer agents only** (not architects, designers, reviewers, or other roles), follow these rules to prevent context bloat:
+
+### Atomic Task Scoping
+
+Each developer agent gets one small, well-defined task. Not "build the auth system" but "implement the login form component per this design." Agent does the task, reports back, exits.
+
+### Agent Recycling
+
+Instead of sending an agent back to fix 5 issues, spawn a fresh agent for each fix (or small batch). Fresh context means the agent actually reads the design docs and rules instead of being buried under rounds of prior work.
+
+### Max-Turn Limits
+
+Set a turn budget when spawning developer agents. If an agent hasn't completed its task within N turns, it reports back what's done and what's left, and you spawn a fresh one to continue.
+
+### One Agent, One Concern
+
+A developer agent shouldn't also be doing its own code review or debugging deployment issues. Keep roles strict so tasks stay small.
 
 ---
 
@@ -249,7 +318,7 @@ No code snippets. No explanations of approach. No stack traces. If you need deta
 
 ## Architect Availability
 
-The Architect is not just a Step 1 role. Invoke the Architect mid-milestone when:
+The Architect is not just a design-phase role. Invoke the Architect mid-milestone when:
 
 - **Merge conflicts** need resolution between teammate branches
 - **Technical conflicts** arise between teammates (e.g., two different approaches to the same problem)
@@ -263,7 +332,7 @@ The Architect is not just a Step 1 role. Invoke the Architect mid-milestone when
 - Use `AskUserQuestion` for all human interaction.
 - Communicate at these points:
   - Start of each milestone (confirm wave plan)
-  - Step 9 (human testing)
+  - Step 11 (human testing)
   - Escalation from Fix Loop (10 rounds exceeded)
   - Blockers that need human input (API keys, service access, product decisions)
 - Keep updates concise. The human does not need play-by-play of every wave.
