@@ -31,7 +31,7 @@ cd builder
 # Write your requirements
 vi /path/to/your-project/REQUIREMENTS.md
 
-# Start Phase I — the Product Manager reads your requirements and produces specs
+# Start Phase I
 cd /path/to/your-project
 claude
 ```
@@ -86,7 +86,8 @@ your-project/
 │   ├── M1-SPEC.md                         # Per-milestone specs (Phase I output)
 │   ├── M2-SPEC.md
 │   └── ...
-├── DESIGN-M{N}.md                         # Architect's design per milestone (Phase II)
+├── DESIGN.md                              # Overall project design — UI/UX + architecture (Phase II)
+├── DESIGN-M{N}.md                         # Per-milestone design — UI/UX + architecture (Phase II)
 ├── STATE.md                               # Current progress (Phase II)
 ├── DECISIONS.md                           # Decision log — append-only (Phase II)
 ├── LEARNINGS.md                           # Active learnings (Phase II)
