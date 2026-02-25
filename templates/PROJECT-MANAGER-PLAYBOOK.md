@@ -160,7 +160,8 @@ Execute these steps for each milestone. Do not skip steps.
 1. Spawn the Architect as a teammate.
 2. Pass them: SPEC.md, current milestone spec, DESIGN.md (overall design), **milestone UI/UX design from Step 1**, DECISIONS.md, LEARNINGS.md.
 3. Architect produces milestone-specific implementation details: component structure, data flow, API contracts, database schema changes.
-4. Architect exits after design is complete.
+4. If the milestone includes AI/prompt features, the Architect creates a **Golden Dataset** for prompt testing — input/output pairs that define expected behavior.
+5. Architect exits after design is complete.
 
 ### Step 3: Compile DESIGN-M{N}.md
 
@@ -180,24 +181,37 @@ Execute these steps for each milestone. Do not skip steps.
 For each wave:
 
 1. **Create the team**: `TeamCreate` for this wave.
-2. **Spawn all teammates simultaneously**: Use the `Task` tool with `team_name` to spawn all developer teammates for this wave at once. Do not spawn them one at a time.
-3. **Each teammate gets**:
+2. **Spawn developer teammates**: Use the `Task` tool with `team_name` to spawn all developer teammates for this wave at once. Do not spawn them one at a time.
+3. **Each developer gets**:
    - Their specific task description
    - Files to read: DECISIONS.md, LEARNINGS.md, SPEC.md, current milestone spec, DESIGN-M{N}.md
    - Clear acceptance criteria
-4. **Teammates work in worktrees**: Each teammate gets an isolated git worktree automatically.
-5. **Teammates report back** using the compressed format (see below).
-6. **You merge results**: After all teammates complete, review their work and merge.
+4. **Developers work in worktrees**: Each developer gets an isolated git worktree automatically.
+5. **Developers build features and write tests** (unit tests). They do NOT run the full test suite themselves.
+6. **Developers report back** using the compressed format (see below).
+7. **You merge results**: After all developers complete, review their work and merge.
 
 ### Step 6: Deploy to Non-Prod
 
 After development waves complete (before reviews):
 
-1. Deploy the current state to non-prod / staging.
+1. Spawn DevOps to deploy the current state to non-prod / staging.
 2. Verify the deployment works.
-3. If deployment fails, fix before proceeding to reviews.
+3. If deployment fails, fix before proceeding to QA and reviews.
 
-### Step 7: Wave-Level Reviews
+### Step 7: QA Testing
+
+After non-prod deployment:
+
+1. Spawn the QA Tester as a teammate.
+2. QA runs the full test suite:
+   - **Unit tests** — all must pass
+   - **E2E tests with Playwright** — validates user flows
+   - **Prompt testing against Golden Dataset with LLM-as-a-Judge** — if the milestone has AI features, QA tests all prompts against the Golden Dataset created by the Architect, using an LLM to judge response quality
+3. QA reports: pass/fail per test category, details on failures.
+4. If tests fail, enter the Fix Loop (Step 10) targeting the failures before proceeding to reviews.
+
+### Step 8: Wave-Level Reviews
 
 Spawn four review teammates simultaneously:
 
@@ -211,34 +225,40 @@ Spawn four review teammates simultaneously:
 Each reviewer receives: the diff of changes in this wave, SPEC.md, DESIGN-M{N}.md.
 Each reviewer produces: a list of issues found (or "no issues").
 
-### Step 8: Milestone-Level Reviews
+### Step 9: Milestone-Level Reviews
 
-After all waves complete, run the same four reviews scoped to the entire milestone. This is a second pass catching cross-wave integration issues, cumulative drift, and overall quality.
+After all waves complete, run milestone-level reviews:
 
-### Step 9: Fix Loop
+1. **QA runs the full test suite again** scoped to the entire milestone:
+   - Unit tests
+   - E2E tests with Playwright
+   - Prompt testing against Golden Dataset with LLM-as-a-Judge (if applicable)
+2. **Four reviewers** (same as wave-level) scoped to the entire milestone — catching cross-wave integration issues, cumulative drift, and overall quality.
 
-1. Collect all issues from wave and milestone reviews.
+### Step 10: Fix Loop
+
+1. Collect all issues from QA testing and reviews (wave and milestone).
 2. Spawn developer teammates to fix issues.
-3. Re-run reviews on the fixes.
-4. Repeat until a review round produces zero new issues.
+3. Re-run QA tests and reviews on the fixes.
+4. Repeat until a round produces zero new issues from all reviewers and QA.
 5. **If 10 rounds pass without convergence** — stop and escalate to the human via `AskUserQuestion`. List the remaining issues and ask for direction.
 
-### Step 10: Architect Tests Eval Conditions
+### Step 11: Architect Tests Eval Conditions
 
 1. Spawn the Architect.
 2. Pass them the milestone spec's Evaluation Conditions table.
 3. Architect independently tests each condition using the specified verification method.
 4. Architect reports: pass/fail per condition, details on failures.
-5. If any condition fails, enter the Fix Loop (Step 9) targeting the failures.
+5. If any condition fails, enter the Fix Loop (Step 10) targeting the failures.
 
-### Step 11: Human Tests Eval Conditions
+### Step 12: Human Tests Eval Conditions
 
 1. Present the evaluation conditions to the human via `AskUserQuestion`.
 2. Ask the human to test each condition and report results.
-3. If the human reports issues, enter the Fix Loop (Step 9) targeting those issues.
+3. If the human reports issues, enter the Fix Loop (Step 10) targeting those issues.
 4. Milestone is not complete until the human approves.
 
-### Step 12: Deploy to Prod
+### Step 13: Deploy to Prod
 
 1. Deploy the milestone to production.
 2. Verify the production deployment works.
@@ -332,7 +352,7 @@ The Architect is not just a design-phase role. Invoke the Architect mid-mileston
 - Use `AskUserQuestion` for all human interaction.
 - Communicate at these points:
   - Start of each milestone (confirm wave plan)
-  - Step 11 (human testing)
+  - Step 12 (human testing)
   - Escalation from Fix Loop (10 rounds exceeded)
   - Blockers that need human input (API keys, service access, product decisions)
 - Keep updates concise. The human does not need play-by-play of every wave.

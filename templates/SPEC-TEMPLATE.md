@@ -12,7 +12,7 @@
 | Architect | Designs technical system based on UI/UX design (upfront + per-milestone), resolves merge conflicts, resolves technical conflicts, tests eval conditions | Upfront design (after UI/UX), start of each milestone (after UI/UX), on-demand for conflicts |
 | Developer | Writes application code, implements features, writes unit/integration tests. Managed with atomic tasks and frequent recycling to prevent context bloat | During wave execution |
 | UI Designer | Creates overall UI/UX design (upfront), milestone-specific UI/UX details, reviews UI/UX quality | Upfront design (first), start of each milestone (first), wave and milestone reviews |
-| QA Tester | Writes E2E tests (Playwright), validates acceptance criteria, checks test coverage | Wave-level and milestone-level reviews |
+| QA Tester | Runs unit tests, E2E tests (Playwright), tests prompts against Golden Dataset with LLM-as-a-Judge | After each wave (before reviews), milestone-level reviews |
 | Proofreader | Checks all user-facing text for spelling, grammar, tone consistency | Wave-level and milestone-level reviews |
 | DevOps | Deploys to non-prod and prod, manages infrastructure, environment config | After dev waves and at milestone completion |
 
